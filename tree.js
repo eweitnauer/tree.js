@@ -122,6 +122,23 @@ Tree.insert = function(parent, idx, node) {
 }
 Tree.prototype.insert = Tree.insert;
 
+
+/// Inserts a range of nodes at the position `idx` into the children array
+/// of the node `parent`. The `nodes` array must contain a list of direct
+/// siblings ordered from left to right.
+Tree.insertRange = function(parent, idx, nodes) {
+  var N=nodes.length;
+  if (N===0) return;
+  nodes[0].ls = parent.children[idx-1];
+  if (parent.children[idx-1]) parent.children[idx-1].rs = nodes[0];
+  nodes[N-1].rs = parent.children[idx];
+  if (parent.children[idx]) parent.children[idx].ls = nodes[N-1];
+  for (var i=0; i<N; i++) nodes[i].parent = parent;
+  parent.children = parent.children.slice(0,idx).concat(nodes, parent.children.slice(idx));
+  return nodes;
+}
+Tree.prototype.insertRange = Tree.insertRange;
+
 /// Inserts a node into the tree as the last child of 'parent'. Returns the inserted node.
 Tree.append = function(parent, node) {
   return Tree.insert(parent, parent.children.length, node);
