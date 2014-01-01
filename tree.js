@@ -156,14 +156,27 @@ Tree.remove = function(node) {
   var idx;
   var siblings = node.parent.children;
   idx = siblings.indexOf(node);
-  if (idx >= 0) {
-    if (siblings[idx-1]) siblings[idx-1].rs = node.rs;
-    if (siblings[idx+1]) siblings[idx+1].ls = node.ls;
-    siblings.splice(idx,1);
-  }
+  if (siblings[idx-1]) siblings[idx-1].rs = node.rs;
+  if (siblings[idx+1]) siblings[idx+1].ls = node.ls;
+  siblings.splice(idx,1);
   return idx;
 }
 Tree.prototype.remove = Tree.remove;
+
+/// Removes a range of nodes from the tree and returns the index of the first node if
+/// nodes contained more than zero nodes. The `nodes` array must contain a list of direct
+/// siblings ordered from left to right.
+Tree.removeRange = function(nodes) {
+  var N = nodes.length;
+  if (N === 0) return;
+  var siblings = nodes[0].parent.children;
+  idx = siblings.indexOf(nodes[0]);
+  if (siblings[idx-1]) siblings[idx-1].rs = nodes[N-1].rs;
+  if (siblings[idx+N]) siblings[idx+N].ls = nodes[0].ls;
+  siblings.splice(idx,N);
+  return idx;
+}
+Tree.prototype.removeRange = Tree.removeRange;
 
 /// Replaces n1 with n2 by removing n1 and inserting n2 at n1's old position. If n2 was part of a
 /// tree (had a parent), it will be removed before being inserted at the new position.
