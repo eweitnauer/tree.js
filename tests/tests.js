@@ -128,3 +128,17 @@ exports['removeRange'] = function(test) {
 
   test.done();
 }
+
+exports['insert'] = function(test) {
+  var t0 = new Tree();
+  Tree.insert(t0, 0, {value:'A'});
+  test.equals(t0.stringify(), '[A]');
+  test.doesNotThrow(function(){t0.validate()});
+
+  var t1 = Tree.parse('[A,B]');
+  Tree.insert(t1, 1, {value: 'AB'});
+  test.equals(t1.stringify(), '[A,AB,B]');
+  test.doesNotThrow(function(){t1.validate()});
+
+  test.done();
+}
