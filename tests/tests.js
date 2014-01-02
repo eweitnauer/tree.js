@@ -163,8 +163,7 @@ exports['get_path'] = function(test){
   test.deepEqual(Tree.get_path(t1.children[1]), [1])
   test.deepEqual(Tree.get_path(t1.children[1].children[1]), [1,1])
   test.deepEqual(Tree.get_path(t1.get_child([3,0,2,1])), [3,0,2,1])
-
-  test.throws(function(){Tree.get_path('8')})
+  test.deepEqual(Tree.get_path('blubb'), []);
 
   test.done()
 }

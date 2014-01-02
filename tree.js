@@ -242,8 +242,12 @@ Tree.prototype.validate = function() { Tree.validate(this); }
 
 /// Pass the parent node and then a sequence of children indices to get a specific
 /// child. E.g. for `[A[B,C[D]]]`, Tree.get(t, [0, 1, 0]) will return node `D`.
+/// If the path does not exist, the method throws an 'invalid path' exception.
 Tree.get_child = function(node, path) {
-  for (var i=0; i<path.length; i++) node = node.children[path[i]];
+  for (var i=0; i<path.length; i++) {
+    if (!node.children || node.children.length <= path[i]) throw 'invalid path';
+    node = node.children[path[i]];
+  }
   return node;
 }
 Tree.prototype.get_child = function(path) {
