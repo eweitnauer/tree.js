@@ -142,3 +142,29 @@ exports['insert'] = function(test) {
 
   test.done();
 }
+
+exports['get_child'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
+  test.equals(t1.get_child([0]).value, 'A')
+  test.equals(t1.get_child([1]).value, 'B')
+  test.equals(t1.get_child([1, 1]).value, 'b')
+  test.equals(t1.get_child([3,0,2,1]).value, '2')
+  test.throws(function(){t1.get_child([4])})
+  test.throws(function(){t1.get_child([1,3])})
+  test.throws(function(){t1.get_child([1,0,0])})
+
+  test.done()
+}
+
+exports['get_path'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
+
+  test.deepEqual(Tree.get_path(t1.children[0]), [0])
+  test.deepEqual(Tree.get_path(t1.children[1]), [1])
+  test.deepEqual(Tree.get_path(t1.children[1].children[1]), [1,1])
+  test.deepEqual(Tree.get_path(t1.get_child([3,0,2,1])), [3,0,2,1])
+
+  test.throws(function(){Tree.get_path('8')})
+
+  test.done()
+}
