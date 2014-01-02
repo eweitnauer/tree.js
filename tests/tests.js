@@ -92,36 +92,36 @@ exports['validate'] = function(test) {
   test.done();
 }
 
-exports['insertRange'] = function(test) {
+exports['insert_range'] = function(test) {
   var t0 = new Tree();
-  Tree.insertRange(t0, 0, Tree.parse('[a,b]').children);
+  Tree.insert_range(t0, 0, Tree.parse('[a,b]').children);
   test.equals(t0.stringify(), '[a,b]');
   test.doesNotThrow(function(){t0.validate()});
 
   var t1 = Tree.parse('[A,B]');
-  Tree.insertRange(t1, 1, Tree.parse('[a,b,c]').children.slice(1,3));
+  Tree.insert_range(t1, 1, Tree.parse('[a,b,c]').children.slice(1,3));
   test.equals(t1.stringify(), '[A,b,c,B]');
   test.doesNotThrow(function(){t1.validate()});
 
   var t2 = Tree.parse('[A,B]');
-  Tree.insertRange(t2, 1, []);
+  Tree.insert_range(t2, 1, []);
   test.equals(t2.stringify(), '[A,B]');
   test.doesNotThrow(function(){t2.validate()});
 
   test.done();
 }
 
-exports['removeRange'] = function(test) {
-  test.doesNotThrow(function(){Tree.removeRange([])});
+exports['remove_range'] = function(test) {
+  test.doesNotThrow(function(){Tree.remove_range([])});
 
   var t1 = Tree.parse('[A,B,C]');
-  var idx = Tree.removeRange([t1.children[1]]);
+  var idx = Tree.remove_range([t1.children[1]]);
   test.equals(t1.stringify(), '[A,C]');
   test.equals(idx, 1);
   test.doesNotThrow(function(){t1.validate()});
 
   var t2 = Tree.parse('[A,B[a,b],C,D]');
-  idx = Tree.removeRange(t2.children.slice(0,3));
+  idx = Tree.remove_range(t2.children.slice(0,3));
   test.equals(t2.stringify(), '[D]');
   test.equals(idx, 0);
   test.doesNotThrow(function(){t2.validate()});

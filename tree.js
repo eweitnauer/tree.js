@@ -126,7 +126,7 @@ Tree.prototype.insert = Tree.insert;
 /// Inserts a range of nodes at the position `idx` into the children array
 /// of the node `parent`. The `nodes` array must contain a list of direct
 /// siblings ordered from left to right.
-Tree.insertRange = function(parent, idx, nodes) {
+Tree.insert_range = function(parent, idx, nodes) {
   var N=nodes.length;
   if (N===0) return;
   nodes[0].ls = parent.children[idx-1];
@@ -137,7 +137,7 @@ Tree.insertRange = function(parent, idx, nodes) {
   parent.children = parent.children.slice(0,idx).concat(nodes, parent.children.slice(idx));
   return nodes;
 }
-Tree.prototype.insertRange = Tree.insertRange;
+Tree.prototype.insert_range = Tree.insert_range;
 
 /// Inserts a node into the tree as the last child of 'parent'. Returns the inserted node.
 Tree.append = function(parent, node) {
@@ -166,7 +166,7 @@ Tree.prototype.remove = Tree.remove;
 /// Removes a range of nodes from the tree and returns the index of the first node if
 /// nodes contained more than zero nodes. The `nodes` array must contain a list of direct
 /// siblings ordered from left to right.
-Tree.removeRange = function(nodes) {
+Tree.remove_range = function(nodes) {
   var N = nodes.length;
   if (N === 0) return;
   var siblings = nodes[0].parent.children;
@@ -176,7 +176,7 @@ Tree.removeRange = function(nodes) {
   siblings.splice(idx,N);
   return idx;
 }
-Tree.prototype.removeRange = Tree.removeRange;
+Tree.prototype.remove_range = Tree.remove_range;
 
 /// Replaces n1 with n2 by removing n1 and inserting n2 at n1's old position. If n2 was part of a
 /// tree (had a parent), it will be removed before being inserted at the new position.
