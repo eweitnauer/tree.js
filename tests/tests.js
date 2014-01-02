@@ -128,3 +128,40 @@ exports['removeRange'] = function(test) {
 
   test.done();
 }
+
+
+exports['getChild'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
+  test.equals(t1.get_child([0]).value, 'A') 
+  test.equals(t1.get_child([1]).value, 'B') 
+  test.equals(t1.get_child([1, 1]).value, 'b') 
+  test.equals(t1.get_child([3,0,2,1]).value, '2') 
+  test.throws(function(){t1.get_child([4])})
+  test.throws(function(){t1.get_child([1,3])})
+  test.throws(function(){t1.get_child([1,0,0])})
+
+  test.done()
+}
+
+exports['getPath'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
+  var a = t1.get_child([0])
+  var b = t1.get_child([1])
+  var c = t1.get_child([1, 1])
+  var d =  t1.get_child([3,0,2,1])
+
+  test.equals(t1.get_path(a)[0], 0)
+  test.equals(t1.get_path(b)[0], 1)
+  test.equals(t1.get_path(c)[0], 1)
+  test.equals(t1.get_path(c)[1], 1)
+  test.equals(t1.get_path(d)[0], 3)
+  test.equals(t1.get_path(d)[1], 0)
+  test.equals(t1.get_path(d)[2], 2)
+  test.equals(t1.get_path(d)[3], 1)
+
+  test.equals(t1.get_path(d), [3,0,2,1])
+
+  test.throws(function(){t1.get_path('8')})
+
+  test.done()
+}
