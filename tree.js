@@ -109,6 +109,48 @@ Tree.clone = function(node, keep_ids) {
 }
 Tree.prototype.clone = Tree.clone;
 
+/// Returns the smallest range of nodes (continuous, ordered neighbors) covering the passed
+/// nodes. The method first gets the closest common ancestor and then selects a range of its
+/// children that contains all the passed nodes.
+Tree.nodes_to_range = function(nodes) {
+  var N = nodes.length;
+  if (N === 0) return [];
+  if (N === 1) return [nodes[0]];
+  var tree = nodes[0];
+  while (tree.parent) tree = tree.parent;
+
+  // get the closest common anchestor (cca)
+  var paths = nodes.map(function(node) {
+    return Tree.get_path(node);
+  });
+  var same = function(len) {
+    if (paths[0].length<=len) return false;
+    var val = paths[0][len];
+    for (var i=1; i<paths.length; i++) {
+      if (paths[i].length-1 <= len+1) return false; // we want an ancestor, so if already at leaf, return
+      if (paths[i][len] !== val) return false;
+    }
+    return true;
+  }
+  var cpl = 0; // common path length
+  while (same(cpl)) cpl++;
+  var cca = tree.get_child(paths[0].slice(0, cpl));
+
+  // get the cca's left-most and right-most child that contains one of the nodes
+  var rm=-1, lm=N;
+  for (var i=0; i<N; i++) {
+    var n = tree.get_child(paths[i].slice(0, cpl+1));
+    var idx = cca.children.indexOf(n);
+    if (idx > rm) rm = idx;
+    if (idx < lm) lm = idx;
+  }
+
+  // now select the whole range of nodes from left to right
+  var range = [];
+  for (var i=lm; i<=rm; i++) range.push(cca.children[i]);
+  return range;
+}
+
 /// Inserts a node into the tree as the child at position 'idx' of 'parent'. Returns the inserted
 /// node.
 Tree.insert = function(parent, idx, node) {
