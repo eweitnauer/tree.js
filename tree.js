@@ -8,7 +8,13 @@ var Tree = function(node) {
 /// This line is for the automated tests with node.js
 if (typeof(exports) != 'undefined') { exports.Tree = Tree }
 
+/// Will parse a sting like '[A,B[b1,b2,b3],C]' and return a tree. Use square brackets
+/// to denote children of a node and commas to separate nodes from each other. You can
+/// use any names for the nodes except ones containing ',', '[' or ']'. The names will
+/// be saved in each nodes `value` field.
+/// If the string does not start with a '[', an exception is thrown.
 Tree.parse = function(str) {
+  if (str[0] !== '[') throw 'unexpected character';
   var t = new Tree();
   var curr = t;
   for (var i=0; i<str.length; i++) {
@@ -33,6 +39,9 @@ Tree.parse = function(str) {
   return t;
 }
 
+/// Inverse of Tree.parse, returns a string representation of the nodes, using their
+/// `value` fields. This is just for debugging and allows you to look at the structure
+/// of a tree and the `value` fields of its nodes.
 Tree.prototype.stringify = function(node) {
   var res = '';
   if (!node && this.children.length === 0) return '[]';
@@ -150,6 +159,7 @@ Tree.nodes_to_range = function(nodes) {
   for (var i=lm; i<=rm; i++) range.push(cca.children[i]);
   return range;
 }
+Tree.prototype.nodes_to_range = Tree.nodes_to_range;
 
 /// Inserts a node into the tree as the child at position 'idx' of 'parent'. Returns the inserted
 /// node.
@@ -183,15 +193,14 @@ Tree.prototype.insert_range = Tree.insert_range;
 
 /// Inserts a node into the tree as the last child of 'parent'. Returns the inserted node.
 Tree.append = function(parent, node) {
-  return Tree.insert(parent, parent.children.length, node);
+  var last = parent.children[parent.children.length-1];
+  if (last) last.rs = node;
+  node.ls = last;
+  node.rs = null;
+  node.parent = parent;
+  parent.children.push(node);
+  return node;
 }
-Tree.prototype.append = Tree.append;
-
-/// Inserts a node into the tree as the first child of 'parent'. Returns the inserted node.
-Tree.prepend = function(parent, node) {
-  return Tree.insert(parent, 0, node);
-}
-Tree.prototype.prepend = Tree.prepend;
 
 /// Removes the passed node from the tree and returns its previous index.
 Tree.remove = function(node) {
@@ -221,7 +230,8 @@ Tree.remove_range = function(nodes) {
 Tree.prototype.remove_range = Tree.remove_range;
 
 /// Replaces n1 with n2 by removing n1 and inserting n2 at n1's old position. If n2 was part of a
-/// tree (had a parent), it will be removed before being inserted at the new position.
+/// tree (had a parent), it will be removed before being inserted at the new position. It is safe
+/// to replace a node with its child.
 /// Returns the inserted node.
 Tree.replace = function(n1, n2) {
   if (n2.parent) Tree.remove(n2);
@@ -348,6 +358,7 @@ Tree.select_first = function(selector, node) {
       curr = curr.children[0];
       continue;
     }
+    if (curr === node) return null;
     while (!curr.rs) {
       curr = curr.parent;
       if (curr === node) return null;
