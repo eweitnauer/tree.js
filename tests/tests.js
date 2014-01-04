@@ -234,6 +234,33 @@ exports['switch_siblings'] = function(test) {
   test.done();
 }
 
+exports['get_by_value'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C,C[j[x,y,z[1,2]]]]')
+
+  test.equals(t1.get_by_value('A').value, 'A')
+  test.equals(t1.get_by_value('C').value, 'C')
+  test.equals(t1.get_by_value('2').value, '2')
+  test.throws(function(){t1.get_by_value('8')})
+  test.throws(function(){t1.get_by_value('ab')})
+  test.throws(function(){t1.get_by_value('')})
+
+  test.done()
+}
+
+exports['get_by_id'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
+
+  test.equals(t1.get_by_id(t1.get_by_value('A').id).value, 'A')
+  test.equals(t1.get_by_id(t1.get_by_value('C').id).value, 'C')
+    test.equals(t1.get_by_id(t1.get_by_value('2').id).value, '2')
+
+  test.throws(function(){t1.get_by_id('8000')})
+  test.throws(function(){t1.get_by_id('')})
+
+  test.done()
+}
+
+
 exports['get_child'] = function(test){
   var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
   test.equals(t1.get_child([0]).value, 'A')
@@ -256,6 +283,16 @@ exports['get_path'] = function(test){
   test.deepEqual(Tree.get_path(t1.get_child([3,0,2,1])), [3,0,2,1])
   test.deepEqual(Tree.get_path('blubb'), []);
 
+  test.done()
+}
+
+exports['get_leaf_nodes'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
+  var t2 = Tree.parse('[A,B,C]')
+  var t3 = Tree.parse('[]')
+  test.deepEqual(t1.get_leaf_nodes().map(function(x){return x.value}), ['A', 'a', 'b', 'C', 'x', 'y', '1', '2'])
+  test.deepEqual(t2.get_leaf_nodes().map(function(x){return x.value}), ['A', 'B', 'C'])
+  test.deepEqual(t3.get_leaf_nodes().map(function(x){return x.value}), [])
   test.done()
 }
 
