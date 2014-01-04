@@ -8,7 +8,13 @@ var Tree = function(node) {
 /// This line is for the automated tests with node.js
 if (typeof(exports) != 'undefined') { exports.Tree = Tree }
 
+/// Will parse a sting like '[A,B[b1,b2,b3],C]' and return a tree. Use square brackets
+/// to denote children of a node and commas to separate nodes from each other. You can
+/// use any names for the nodes except ones containing ',', '[' or ']'. The names will
+/// be saved in each nodes `value` field.
+/// If the string does not start with a '[', an exception is thrown.
 Tree.parse = function(str) {
+  if (str[0] !== '[') throw 'unexpected character';
   var t = new Tree();
   var curr = t;
   for (var i=0; i<str.length; i++) {
@@ -33,6 +39,9 @@ Tree.parse = function(str) {
   return t;
 }
 
+/// Inverse of Tree.parse, returns a string representation of the nodes, using their
+/// `value` fields. This is just for debugging and allows you to look at the structure
+/// of a tree and the `value` fields of its nodes.
 Tree.prototype.stringify = function(node) {
   var res = '';
   if (!node && this.children.length === 0) return '[]';
@@ -109,6 +118,49 @@ Tree.clone = function(node, keep_ids) {
 }
 Tree.prototype.clone = Tree.clone;
 
+/// Returns the smallest range of nodes (continuous, ordered neighbors) covering the passed
+/// nodes. The method first gets the closest common ancestor and then selects a range of its
+/// children that contains all the passed nodes.
+Tree.nodes_to_range = function(nodes) {
+  var N = nodes.length;
+  if (N === 0) return [];
+  if (N === 1) return [nodes[0]];
+  var tree = nodes[0];
+  while (tree.parent) tree = tree.parent;
+
+  // get the closest common anchestor (cca)
+  var paths = nodes.map(function(node) {
+    return Tree.get_path(node);
+  });
+  var same = function(len) {
+    if (paths[0].length<=len) return false;
+    var val = paths[0][len];
+    for (var i=1; i<paths.length; i++) {
+      if (paths[i].length-1 <= len+1) return false; // we want an ancestor, so if already at leaf, return
+      if (paths[i][len] !== val) return false;
+    }
+    return true;
+  }
+  var cpl = 0; // common path length
+  while (same(cpl)) cpl++;
+  var cca = tree.get_child(paths[0].slice(0, cpl));
+
+  // get the cca's left-most and right-most child that contains one of the nodes
+  var rm=-1, lm=N;
+  for (var i=0; i<N; i++) {
+    var n = tree.get_child(paths[i].slice(0, cpl+1));
+    var idx = cca.children.indexOf(n);
+    if (idx > rm) rm = idx;
+    if (idx < lm) lm = idx;
+  }
+
+  // now select the whole range of nodes from left to right
+  var range = [];
+  for (var i=lm; i<=rm; i++) range.push(cca.children[i]);
+  return range;
+}
+Tree.prototype.nodes_to_range = Tree.nodes_to_range;
+
 /// Inserts a node into the tree as the child at position 'idx' of 'parent'. Returns the inserted
 /// node.
 Tree.insert = function(parent, idx, node) {
@@ -126,7 +178,7 @@ Tree.prototype.insert = Tree.insert;
 /// Inserts a range of nodes at the position `idx` into the children array
 /// of the node `parent`. The `nodes` array must contain a list of direct
 /// siblings ordered from left to right.
-Tree.insertRange = function(parent, idx, nodes) {
+Tree.insert_range = function(parent, idx, nodes) {
   var N=nodes.length;
   if (N===0) return;
   nodes[0].ls = parent.children[idx-1];
@@ -137,19 +189,18 @@ Tree.insertRange = function(parent, idx, nodes) {
   parent.children = parent.children.slice(0,idx).concat(nodes, parent.children.slice(idx));
   return nodes;
 }
-Tree.prototype.insertRange = Tree.insertRange;
+Tree.prototype.insert_range = Tree.insert_range;
 
 /// Inserts a node into the tree as the last child of 'parent'. Returns the inserted node.
 Tree.append = function(parent, node) {
-  return Tree.insert(parent, parent.children.length, node);
+  var last = parent.children[parent.children.length-1];
+  if (last) last.rs = node;
+  node.ls = last;
+  node.rs = null;
+  node.parent = parent;
+  parent.children.push(node);
+  return node;
 }
-Tree.prototype.append = Tree.append;
-
-/// Inserts a node into the tree as the first child of 'parent'. Returns the inserted node.
-Tree.prepend = function(parent, node) {
-  return Tree.insert(parent, 0, node);
-}
-Tree.prototype.prepend = Tree.prepend;
 
 /// Removes the passed node from the tree and returns its previous index.
 Tree.remove = function(node) {
@@ -166,7 +217,7 @@ Tree.prototype.remove = Tree.remove;
 /// Removes a range of nodes from the tree and returns the index of the first node if
 /// nodes contained more than zero nodes. The `nodes` array must contain a list of direct
 /// siblings ordered from left to right.
-Tree.removeRange = function(nodes) {
+Tree.remove_range = function(nodes) {
   var N = nodes.length;
   if (N === 0) return;
   var siblings = nodes[0].parent.children;
@@ -176,10 +227,11 @@ Tree.removeRange = function(nodes) {
   siblings.splice(idx,N);
   return idx;
 }
-Tree.prototype.removeRange = Tree.removeRange;
+Tree.prototype.remove_range = Tree.remove_range;
 
 /// Replaces n1 with n2 by removing n1 and inserting n2 at n1's old position. If n2 was part of a
-/// tree (had a parent), it will be removed before being inserted at the new position.
+/// tree (had a parent), it will be removed before being inserted at the new position. It is safe
+/// to replace a node with its child.
 /// Returns the inserted node.
 Tree.replace = function(n1, n2) {
   if (n2.parent) Tree.remove(n2);
@@ -242,8 +294,12 @@ Tree.prototype.validate = function() { Tree.validate(this); }
 
 /// Pass the parent node and then a sequence of children indices to get a specific
 /// child. E.g. for `[A[B,C[D]]]`, Tree.get(t, [0, 1, 0]) will return node `D`.
+/// If the path does not exist, the method throws an 'invalid path' exception.
 Tree.get_child = function(node, path) {
-  for (var i=0; i<path.length; i++) node = node.children[path[i]];
+  for (var i=0; i<path.length; i++) {
+    if (!node.children || node.children.length <= path[i]) throw 'invalid path';
+    node = node.children[path[i]];
+  }
   return node;
 }
 Tree.prototype.get_child = function(path) {
@@ -302,6 +358,7 @@ Tree.select_first = function(selector, node) {
       curr = curr.children[0];
       continue;
     }
+    if (curr === node) return null;
     while (!curr.rs) {
       curr = curr.parent;
       if (curr === node) return null;
