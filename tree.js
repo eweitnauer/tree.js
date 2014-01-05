@@ -5,16 +5,21 @@ var Tree = function(node) {
   if (node) Tree.append(this, node);
 }
 
+Tree.version = '0.1.0';
+
 /// This line is for the automated tests with node.js
 if (typeof(exports) != 'undefined') { exports.Tree = Tree }
 
 /// Will parse a sting like '[A,B[b1,b2,b3],C]' and return a tree. Use square brackets
 /// to denote children of a node and commas to separate nodes from each other. You can
 /// use any names for the nodes except ones containing ',', '[' or ']'. The names will
-/// be saved in each nodes `value` field.
+/// be saved in each nodes `value` field. Nodes will also be created in absense of
+/// values, e.g. '[,]' will create a tree with two nodes with empty values. There is one
+/// exception: '[]' will create an empty tree.
 /// If the string does not start with a '[', an exception is thrown.
 Tree.parse = function(str) {
   if (str[0] !== '[') throw 'unexpected character';
+  if (str === '[]') return new Tree();
   var t = new Tree();
   var curr = t;
   for (var i=0; i<str.length; i++) {
@@ -318,27 +323,42 @@ Tree.get_path = function(node) {
 }
 Tree.prototype.get_path = Tree.get_path;
 
-/// Calls the passed function for all nodes and each of their descendents. If children_first is
-/// passed as true, the algorithm works bottom-up, else top-down. Both children_first and node are
-/// optional and default to 'false' and 'this'. If node is passed, it can either be a single node
-/// or an array of nodes.
-Tree.forEach = function(f, children_first, node) {
-  var nodes = node ? (Array.isArray(node) ? node : [node]) : this.children;
+/// Calls the passed function for the passed node and all its descandents in depth-first order.
+/// Node can either be a single node or an array of nodes.
+Tree.for_each = function(f, node) {
+  var nodes = Array.isArray(node) ? node : [node];
   var traverse = function(node) {
-    if (!children_first) f(node);
+    f(node);
     if (node.children) for (var i=0; i<node.children.length; i++) traverse(node.children[i]);
-    if (children_first) f(node);
   }
   for (var i=0; i<nodes.length; i++) traverse(nodes[i]);
 }
-Tree.prototype.forEach = Tree.forEach;
+Tree.prototype.for_each = function(f) {
+  Tree.for_each(f, this.children);
+}
+
+/// Calls the passed function for each of the passed nodes and their anchestors, depth-first.
+/// The results are stored in an array that is returned. Node can either be a single node or
+/// an array of nodes.
+Tree.map = function(f, node) {
+  var nodes = Array.isArray(node) ? node : [node];
+  var res = [];
+  var traverse = function(node) {
+    res.push(f(node));
+    if (node.children) for (var i=0; i<node.children.length; i++) traverse(node.children[i]);
+  }
+  for (var i=0; i<nodes.length; i++) traverse(nodes[i]);
+  return res;
+}
+Tree.prototype.map = function(f) {
+  return Tree.map(f, this.children);
+}
 
 /// Returns an array of all nodes for which the passed selector function returned true. Traverses
-/// the nodes in a top-down left-right order. Optionally, an nodes can be passed in which
-/// case it is searched.
+/// the nodes depth-first. The passed node can either be a single node or an array of nodes.
 Tree.select_all = function(selector, node) {
   var result = [];
-  var nodes = node ? [node] : this.children;
+  var nodes = Array.isArray(node) ? node : [node];
   var f = function(node) {
     if (selector(node)) result.push(node);
     if (node.children) for (var i=0; i<node.children.length; i++) f(node.children[i]);
@@ -346,51 +366,48 @@ Tree.select_all = function(selector, node) {
   for (var i=0; i<nodes.length; i++) f(nodes[i]);
   return result;
 }
-Tree.prototype.select_all = Tree.select_all;
+Tree.prototype.select_all = function(f) {
+  return Tree.select_all(f, this.children);
+}
 
-/// Returns the first node in the passed tree for that the selector function returns true.
+/// Returns the first node in the passed node or its decandents for that the selector function
+/// returns true. Traverses depth-first. Node can either be a single node or an array of nodes.
+/// If no nodes matches, returns null.
 Tree.select_first = function(selector, node) {
-  node = node || this;
-  var curr = node;
-  for (;;) {
-    if (selector(curr)) return curr;
-    if (curr.children && curr.children[0]) {
-      curr = curr.children[0];
-      continue;
-    }
-    if (curr === node) return null;
-    while (!curr.rs) {
-      curr = curr.parent;
+  var f = function(node) {
+    var curr = node;
+    for (;;) {
+      if (selector(curr)) return curr;
+      if (curr.children && curr.children[0]) {
+        curr = curr.children[0];
+        continue;
+      }
       if (curr === node) return null;
+      while (!curr.rs) {
+        curr = curr.parent;
+        if (curr === node) return null;
+      }
+      curr = curr.rs;
     }
-    curr = curr.rs;
   }
+  var nodes = Array.isArray(node) ? node : [node];
+  for (var i=0; i<nodes.length; i++) {
+    var n = f(nodes[i]);
+    if (n) return n;
+  }
+  return null;
 }
 /// Here, node is optional and if not passed the tree itself is used as root node.
-Tree.prototype.select_first = Tree.select_first;
-
-/// Returns an array of all leaf nodes (which might be used for visualization directly).
-/// Optionally, a node can be passed in which case its leaf nodes are extracted.
-Tree.prototype.get_leaf_nodes = function(node) {
-  return this.select_all(function(n) { return !(n.children && n.children.length) }, node);
+Tree.prototype.select_first = function(selector) {
+  return Tree.select_first(selector, this.children);
 }
 
-/// Calls to_string for all nodes in the passed array and returns the concatinated string.
-Tree.to_string = function(nodes) {
-  return nodes.map(function(n) { return n.to_string() }).join("");
+/// Returns an array of all leaf nodes of the node array or single node passed.
+Tree.get_leaf_nodes = function(node) {
+  return Tree.select_all(function(n) { return !(n.children && n.children.length) }, node);
 }
-
-/// Calls to_string for all nodes in the passed array and returns the concatinated string. If no
-/// nodes are passed, the toplevel nodes of the tree are used instead.
-Tree.prototype.to_string = function(nodes) {
-  nodes = nodes || this.children;
-  return Tree.to_string(nodes);
-}
-
-/// Returns the first leaf child of a node.
-Tree.prototype.first_leaf = function(n) {
-  if (!n.children) return n;
-  return this.first_leaf(n.children[0]);
+Tree.prototype.get_leaf_nodes = function() {
+  return Tree.get_leaf_nodes(this.children);
 }
 
 /// Retruns true if the node is top-level in the tree (its parent is the Tree object).
@@ -398,19 +415,20 @@ Tree.is_root = function(node) {
   return node && node.parent instanceof Tree;
 }
 
-/// Returns an array of nodes in the tree that have the passed value and don't have the 'hidden'
-/// property set to true. Optionally, an array of nodes can be passed in which case they are
-/// searched instead.
-Tree.prototype.get_by_value = function(value, nodes) {
-  return this.select_all(function(node) {
-    return (!node.hidden && node.to_string() === value)
-  }, nodes);
+/// Returns an array of all nodes that have the passed value in their .value field. Seaches on
+/// the passed array of nodes or single node depth-first.
+Tree.get_by_value = function(value, node) {
+  return Tree.select_all(function(n) { return n.value === value}, node);
+}
+Tree.prototype.get_by_value = function(value) {
+  return Tree.get_by_value(value, this.children);
 }
 
-// Returns the node with the passed id. If no node has the id, returns null.
-Tree.get_by_id = function(id, root) {
-  return Tree.select_first(function (n) { return n.id === id }, root);
+/// Returns the first node with the passed id or null if no node has the id. Seaches on
+/// the passed array of nodes or single node depth-first.
+Tree.get_by_id = function(id, node) {
+  return Tree.select_first(function (n) { return n.id === id }, node);
 }
-Tree.prototype.get_by_id = function(id, root) {
-  return this.select_first(function (n) { return n.id === id }, root || this);
+Tree.prototype.get_by_id = function(id) {
+  return Tree.get_by_id(id, this.children);
 }
