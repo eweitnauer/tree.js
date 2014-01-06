@@ -3,29 +3,26 @@
 /// testing with nodeunit
 var Tree   = require('../tree.js').Tree;
 
-exports['Tree'] = function(test) {
-  var t1 = new Tree();
-  var n = {};
-  var t2 = new Tree(n);
-
-  test.equals(t1.children.length, 0);
-  test.equals(t2.children.length, 1);
-  test.equals(t2.children[0], n);
-  test.equals(t2.children[0].parent, t2);
-
-  test.done();
-}
-
 exports['parse'] = function(test) {
-  var t0 = Tree.parse('[]');
+  var t0 = Tree.parse('');
+  var t01 = Tree.parse('A');
+  var t02 = Tree.parse('A,B');
   var t1 = Tree.parse('[,]');
   var t2 = Tree.parse('[A,B]');
   var t3 = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
 
-  test.throws(function() {Tree.parse('A,B')});
-
   test.equals(t0.children.length, 0);
+  test.equals(t01.children.length, 0);
+  test.equals(t01.value, 'A');
+  test.equals(t02.length, 2);
+  test.equals(t02[0].value, 'A');
+  test.equals(t02[0].rs.value, 'B');
+  test.equals(t02[0].parent, undefined);
+  test.equals(t02[1].value, 'B');
+  test.equals(t02[1].ls.value, 'A');
+  test.equals(t02[1].parent, undefined);
 
+  test.equals(t1.value, '');
   test.equals(t1.children.length, 2);
   test.equals(t1.children[0].value, '');
   test.equals(t1.children[1].value, '');
@@ -53,10 +50,10 @@ exports['parse'] = function(test) {
 }
 
 exports['stringify'] = function(test) {
-  var t1 = new Tree();
-  test.equals(t1.stringify(), '[]');
-  test.equals(Tree.parse('[A,B]').stringify(), '[A,B]');
-  test.equals(Tree.parse('[A[A1,A2],B,C[C1[C11]]]').stringify(), '[A[A1,A2],B,C[C1[C11]]]');
+  test.equals(Tree.stringify(Tree.parse('A')), 'A');
+  test.equals(Tree.stringify(Tree.parse('[]')), '[]');
+  test.equals(Tree.stringify(Tree.parse('A,B')), 'A,B');
+  test.equals(Tree.stringify(Tree.parse('[A[A1,A2],B,C[C1[C11]]]')), '[A[A1,A2],B,C[C1[C11]]]');
 
   test.done();
 }
@@ -74,50 +71,57 @@ exports['uid'] = function(test) {
 }
 
 exports['validate'] = function(test) {
-  var t1 = new Tree();
-  test.doesNotThrow(function() {t1.validate()});
+  var t1 = Tree.parse('');
+  test.doesNotThrow(function() {Tree.validate(t1)});
 
   var t2 = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
-  test.doesNotThrow(function() {t2.validate()});
+  test.doesNotThrow(function() {Tree.validate(t2)});
+
+  var t2b = Tree.parse('A[A1,A2],B,C[C1[C11]]');
+  test.doesNotThrow(function() {Tree.validate(t2b)});
 
   var t3 = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
   t3.children[2].children[0].children[0].parent = null;
-  test.throws(function() {t3.validate()});
+  test.throws(function() {Tree.validate(t3)});
 
   var t3b = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
   t3b.children[2].children[0].children[0].parent = t3b.children[2];
-  test.throws(function() {t3b.validate()});
+  test.throws(function() {Tree.validate(t3b)});
 
   var t4 = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
   t4.children[0].children[0].rs = null;
-  test.throws(function() {t4.validate()});
+  test.throws(function() {Tree.validate(t4)});
 
   var t5 = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
   t5.children[0].children[1].ls = null;
-  test.throws(function(){t5.validate()});
+  test.throws(function(){Tree.validate(t5)});
 
   var t6 = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
   t6.children[0].children = t6.children[0].children.slice(1);
-  test.throws(function(){t6.validate()});
+  test.throws(function(){Tree.validate(t6)});
+
+  var t6b = Tree.parse('A[A1,A2],B,C[C1[C11]]');
+  t6b[0].children = t6b[0].children.slice(1);
+  test.throws(function(){Tree.validate(t6b)});
 
   test.done();
 }
 
 exports['insert_range'] = function(test) {
-  var t0 = new Tree();
+  var t0 = Tree.parse('');
   Tree.insert_range(t0, 0, Tree.parse('[a,b]').children);
-  test.equals(t0.stringify(), '[a,b]');
-  test.doesNotThrow(function(){t0.validate()});
+  test.equals(Tree.stringify(t0), '[a,b]');
+  test.doesNotThrow(function(){Tree.validate(t0)});
 
   var t1 = Tree.parse('[A,B]');
   Tree.insert_range(t1, 1, Tree.parse('[a,b,c]').children.slice(1,3));
-  test.equals(t1.stringify(), '[A,b,c,B]');
-  test.doesNotThrow(function(){t1.validate()});
+  test.equals(Tree.stringify(t1), '[A,b,c,B]');
+  test.doesNotThrow(function(){Tree.validate(t1)});
 
   var t2 = Tree.parse('[A,B]');
   Tree.insert_range(t2, 1, []);
-  test.equals(t2.stringify(), '[A,B]');
-  test.doesNotThrow(function(){t2.validate()});
+  test.equals(Tree.stringify(t2), '[A,B]');
+  test.doesNotThrow(function(){Tree.validate(t2)});
 
   test.done();
 }
@@ -127,43 +131,43 @@ exports['remove_range'] = function(test) {
 
   var t1 = Tree.parse('[A,B,C]');
   var idx = Tree.remove_range([t1.children[1]]);
-  test.equals(t1.stringify(), '[A,C]');
+  test.equals(Tree.stringify(t1), '[A,C]');
   test.equals(idx, 1);
-  test.doesNotThrow(function(){t1.validate()});
+  test.doesNotThrow(function(){Tree.validate(t1)});
 
   var t2 = Tree.parse('[A,B[a,b],C,D]');
   idx = Tree.remove_range(t2.children.slice(0,3));
-  test.equals(t2.stringify(), '[D]');
+  test.equals(Tree.stringify(t2), '[D]');
   test.equals(idx, 0);
-  test.doesNotThrow(function(){t2.validate()});
+  test.doesNotThrow(function(){Tree.validate(t2)});
 
   test.done();
 }
 
 exports['insert'] = function(test) {
-  var t0 = new Tree();
+  var t0 = Tree.parse('');
   Tree.insert(t0, 0, {value:'A'});
-  test.equals(t0.stringify(), '[A]');
-  test.doesNotThrow(function(){t0.validate()});
+  test.equals(Tree.stringify(t0), '[A]');
+  test.doesNotThrow(function(){Tree.validate(t0)});
 
   var t1 = Tree.parse('[A,B]');
   Tree.insert(t1, 1, {value: 'AB'});
-  test.equals(t1.stringify(), '[A,AB,B]');
-  test.doesNotThrow(function(){t1.validate()});
+  test.equals(Tree.stringify(t1), '[A,AB,B]');
+  test.doesNotThrow(function(){Tree.validate(t1)});
 
   test.done();
 }
 
 exports['append'] = function(test) {
-  var t0 = new Tree();
+  var t0 = Tree.parse('');
   Tree.append(t0, {value:'A'});
-  test.equals(t0.stringify(), '[A]');
-  test.doesNotThrow(function(){t0.validate()});
+  test.equals(Tree.stringify(t0), '[A]');
+  test.doesNotThrow(function(){Tree.validate(t0)});
 
   var t1 = Tree.parse('[A[a,b],B]');
   Tree.append(t1.children[0], {value: 'c'});
-  test.equals(t1.stringify(), '[A[a,b,c],B]');
-  test.doesNotThrow(function(){t1.validate()});
+  test.equals(Tree.stringify(t1), '[A[a,b,c],B]');
+  test.doesNotThrow(function(){Tree.validate(t1)});
 
   test.done();
 }
@@ -171,20 +175,20 @@ exports['append'] = function(test) {
 exports['remove'] = function(test) {
   var t0 = Tree.parse('[A,B,C]');
   var idx = Tree.remove(t0.children[1]);
-  test.equals(t0.stringify(), '[A,C]');
-  test.doesNotThrow(function(){t0.validate()});
+  test.equals(Tree.stringify(t0), '[A,C]');
+  test.doesNotThrow(function(){Tree.validate(t0)});
   test.equals(idx, 1);
 
   var t1 = Tree.parse('[A]');
   var idx = Tree.remove(t1.children[0]);
-  test.equals(t1.stringify(), '[]');
-  test.doesNotThrow(function(){t1.validate()});
+  test.equals(Tree.stringify(t1), '');
+  test.doesNotThrow(function(){Tree.validate(t1)});
   test.equals(idx, 0);
 
   var t2 = Tree.parse('[A,B[a,b],C]')
   var idx = Tree.remove(t2.children[1].children[1]);
-  test.equals(t2.stringify(), '[A,B[a],C]');
-  test.doesNotThrow(function(){t2.validate()});
+  test.equals(Tree.stringify(t2), '[A,B[a],C]');
+  test.doesNotThrow(function(){Tree.validate(t2)});
 
   test.done();
 }
@@ -192,22 +196,22 @@ exports['remove'] = function(test) {
 exports['replace'] = function(test) {
   var t0 = Tree.parse('[A]');
   Tree.replace(t0.children[0], {value: 'B', children:[]});
-  test.equals(t0.stringify(), '[B]');
-  test.doesNotThrow(function(){t0.validate()});
+  test.equals(Tree.stringify(t0), '[B]');
+  test.doesNotThrow(function(){Tree.validate(t0)});
 
 
   var t1 = Tree.parse('[A[a,b],B]');
   Tree.replace(t1.children[0], t1.children[0].children[1]);
-  test.equals(t1.stringify(), '[b,B]');
-  test.doesNotThrow(function(){t1.validate()});
+  test.equals(Tree.stringify(t1), '[b,B]');
+  test.doesNotThrow(function(){Tree.validate(t1)});
 
   var t2 = Tree.parse('[A,B]');
   var t3 = Tree.parse('[C[a],D]');
   Tree.replace(t2.children[1], t3.children[0]);
-  test.equals(t2.stringify(), '[A,C[a]]');
-  test.equals(t3.stringify(), '[D]');
-  test.doesNotThrow(function(){t2.validate()});
-  test.doesNotThrow(function(){t3.validate()});
+  test.equals(Tree.stringify(t2), '[A,C[a]]');
+  test.equals(Tree.stringify(t3), '[D]');
+  test.doesNotThrow(function(){Tree.validate(t2)});
+  test.doesNotThrow(function(){Tree.validate(t3)});
 
   test.done();
 }
@@ -215,23 +219,23 @@ exports['replace'] = function(test) {
 exports['switch_siblings'] = function(test) {
   var t0 = Tree.parse('[A,B,C]');
   Tree.switch_siblings(t0.children[0], t0.children[2]);
-  test.equals(t0.stringify(), '[C,B,A]');
-  test.doesNotThrow(function(){t0.validate()});
+  test.equals(Tree.stringify(t0), '[C,B,A]');
+  test.doesNotThrow(function(){Tree.validate(t0)});
 
   var t1 = Tree.parse('[A,B,C]');
   Tree.switch_siblings(t1.children[2], t1.children[0]);
-  test.equals(t1.stringify(), '[C,B,A]');
-  test.doesNotThrow(function(){t1.validate()});
+  test.equals(Tree.stringify(t1), '[C,B,A]');
+  test.doesNotThrow(function(){Tree.validate(t1)});
 
   var t2 = Tree.parse('[A,B,C]');
   Tree.switch_siblings(t2.children[1], t2.children[2]);
-  test.equals(t2.stringify(), '[A,C,B]');
-  test.doesNotThrow(function(){t2.validate()});
+  test.equals(Tree.stringify(t2), '[A,C,B]');
+  test.doesNotThrow(function(){Tree.validate(t2)});
 
   var t3 = Tree.parse('[A,B,C]');
   Tree.switch_siblings(t3.children[1], t3.children[0]);
-  test.equals(t3.stringify(), '[B,A,C]');
-  test.doesNotThrow(function(){t3.validate()});
+  test.equals(Tree.stringify(t3), '[B,A,C]');
+  test.doesNotThrow(function(){Tree.validate(t3)});
 
   var t4 = Tree.parse('[A[b]]');
   test.throws(function() {Tree.switch_siblings(t4.children[0], t4.children[0].children[0])});
@@ -240,14 +244,14 @@ exports['switch_siblings'] = function(test) {
 }
 
 exports['for_each'] = function(test) {
-  var t0 = new Tree();
+  var t0 = Tree.parse('');
   var res = [];
   Tree.for_each(function (n) { res.push(n.value) }, t0.children);
   test.equals(res.length, 0);
 
-  var t1 = Tree.parse('[A,B]');
+  var t1 = Tree.parse('A,B');
   res = [];
-  t1.for_each(function (n) { res.push(n.value) });
+  Tree.for_each(function (n) { res.push(n.value) }, t1);
   test.deepEqual(res, ['A','B']);
 
   var t2 = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
@@ -264,12 +268,12 @@ exports['for_each'] = function(test) {
 exports['map'] = function(test) {
   var f = function(node) { return node.value };
 
-  var t0 = new Tree();
+  var t0 = Tree.parse('');
   var res = Tree.map(f, t0.children);
   test.equals(res.length, 0);
 
-  var t1 = Tree.parse('[A,B]');
-  res = t1.map(f);
+  var t1 = Tree.parse('A,B');
+  res = Tree.map(f, t1);
   test.deepEqual(res, ['A','B']);
 
   var t2 = Tree.parse('[A[A1,A2],B,C[C1[C11]]]');
@@ -282,12 +286,12 @@ exports['map'] = function(test) {
 }
 
 exports['select_all'] = function(test) {
-  var t0 = new Tree();
+  var t0 = Tree.parse('');
   var res = Tree.select_all(function (n) { return true }, t0.children);
   test.equals(res.length, 0);
 
-  var t1 = Tree.parse('[A,B]');
-  res = t1.select_all(function (n) { return true });
+  var t1 = Tree.parse('A,B');
+  res = Tree.select_all(function (n) { return true }, t1);
   res = res.map(function (n) { return n.value });
   test.deepEqual(res, ['A','B']);
 
@@ -303,13 +307,13 @@ exports['select_all'] = function(test) {
 }
 
 exports['select_first'] = function(test) {
-  var t0 = new Tree();
+  var t0 = Tree.parse('');
   var res = Tree.select_first(function (n) { return true }, t0.children);
   test.equals(res, null);
 
-  var t1 = Tree.parse('[A,B]');
-  res = t1.select_first(function (n) { return true });
-  test.equals(res, t1.children[0]);
+  var t1 = Tree.parse('A,B');
+  res = Tree.select_first(function (n) { return true }, t1);
+  test.equals(res, t1[0]);
 
   var t2 = Tree.parse('[A]');
   res = Tree.select_first(function (n) { return false }, t2.children[0]);
@@ -324,51 +328,77 @@ exports['select_first'] = function(test) {
   test.done();
 }
 
-exports['get_by_value'] = function(test){
+exports['clone'] = function(test) {
+  var n0 = Tree.parse('[A]').children[0];
+  n0.id = Tree.uid();
+  var c0 = Tree.clone(n0);
+  test.notEqual(c0, n0);
+  test.notEqual(c0.id, n0.id);
+  test.equals(c0.value, n0.value);
+  c0 = Tree.clone(n0, true);
+  test.equals(c0.id, n0.id);
+
+  var f = function(n) { return n.value }
+
+  var n1 = Tree.parse('[A,B[a[1,2],b[1[1]],c],C]').children[1];
+  var c1 = Tree.clone(n1);
+  test.equals(c1.ls, null);
+  test.equals(c1.rs, null);
+  test.equals(c1.parent, null);
+  test.notEqual(c1,n1);
+  test.deepEqual(Tree.map(f,n1), Tree.map(f,c1));
+
+  var n2 = Tree.parse('[A,B[a[1,2],b[1[1]],c],C]').children;
+  var c2 = Tree.clone(n2);
+  test.equals(c2.length, 3)
+  test.notEqual(c2,n2);
+  test.deepEqual(Tree.map(f,n2), Tree.map(f,c2));
+
+  test.done();
+}
+
+exports['get_by_value'] = function(test) {
   var t1 = Tree.parse('[A,B[B,b],B,C[C[x,y,z[1,2]]]]')
 
-  var r0 = t1.get_by_value('A');
+  var r0 = Tree.get_by_value('A', t1.children);
   test.equals(r0.length, 1);
   test.equals(r0[0], t1.children[0]);
 
-  var r1 = t1.get_by_value('B');
+  var r1 = Tree.get_by_value('B', t1.children);
   test.equals(r1.length, 3);
   test.equals(r1[0], t1.children[1]);
   test.equals(r1[1], t1.children[1].children[0]);
   test.equals(r1[2], t1.children[2]);
 
-  var r2 = t1.get_by_value('ab');
+  var r2 = Tree.get_by_value('ab', t1.children);
   test.equals(r2.length, 0);
 
-  var r3 = t1.get_by_value('');
+  var r3 = Tree.get_by_value('', t1.children);
   test.equals(r3.length, 0);
 
   test.done()
 }
 
-// exports['get_by_id'] = function(test){
-//   var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
+exports['get_by_id'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C');
+  Tree.for_each(function (n) { n.id = '#'+n.value }, t1);
 
-//   test.equals(t1.get_by_id(t1.get_by_value('A').id).value, 'A')
-//   test.equals(t1.get_by_id(t1.get_by_value('C').id).value, 'C')
-//   test.equals(t1.get_by_id(t1.get_by_value('2').id).value, '2')
+  test.equals(Tree.get_by_id('#B', t1), t1.children[1]);
+  test.equals(Tree.get_by_id('#b', t1), t1.children[1].children[1]);
+  test.equals(Tree.get_by_id('D', t1), null);
 
-//   test.equals(t1.get_by_id('8000'), null);
-//   test.equals(t1.get_by_id(''), null);
-
-//   test.done()
-// }
-
+  test.done()
+}
 
 exports['get_child'] = function(test){
   var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
-  test.equals(t1.get_child([0]).value, 'A')
-  test.equals(t1.get_child([1]).value, 'B')
-  test.equals(t1.get_child([1, 1]).value, 'b')
-  test.equals(t1.get_child([3,0,2,1]).value, '2')
-  test.throws(function(){t1.get_child([4])})
-  test.throws(function(){t1.get_child([1,3])})
-  test.throws(function(){t1.get_child([1,0,0])})
+  test.equals(Tree.get_child([0],t1).value, 'A')
+  test.equals(Tree.get_child([1],t1).value, 'B')
+  test.equals(Tree.get_child([1, 1],t1).value, 'b')
+  test.equals(Tree.get_child([3,0,2,1],t1).value, '2')
+  test.throws(function(){Tree.get_child([4],t1)})
+  test.throws(function(){Tree.get_child([1,3],t1)})
+  test.throws(function(){Tree.get_child([1,0,0],t1)})
 
   test.done()
 }
@@ -379,7 +409,7 @@ exports['get_path'] = function(test){
   test.deepEqual(Tree.get_path(t1.children[0]), [0])
   test.deepEqual(Tree.get_path(t1.children[1]), [1])
   test.deepEqual(Tree.get_path(t1.children[1].children[1]), [1,1])
-  test.deepEqual(Tree.get_path(t1.get_child([3,0,2,1])), [3,0,2,1])
+  test.deepEqual(Tree.get_path(Tree.get_child([3,0,2,1],t1)), [3,0,2,1])
   test.deepEqual(Tree.get_path('blubb'), []);
 
   test.done()
@@ -389,9 +419,10 @@ exports['get_leaf_nodes'] = function(test){
   var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
   var t2 = Tree.parse('[A,B,C]')
   var t3 = Tree.parse('[]')
-  test.deepEqual(t1.get_leaf_nodes().map(function(x){return x.value}), ['A', 'a', 'b', 'C', 'x', 'y', '1', '2'])
-  test.deepEqual(t2.get_leaf_nodes().map(function(x){return x.value}), ['A', 'B', 'C'])
-  test.deepEqual(t3.get_leaf_nodes().map(function(x){return x.value}), [])
+  var f = function (n) { return n.value }
+  test.deepEqual(Tree.get_leaf_nodes(t1).map(f), ['A', 'a', 'b', 'C', 'x', 'y', '1', '2'])
+  test.deepEqual(Tree.get_leaf_nodes(t2).map(f), ['A', 'B', 'C'])
+  test.deepEqual(Tree.get_leaf_nodes(t3).map(f), [''])
   test.done()
 }
 
@@ -408,15 +439,15 @@ exports['nodes_to_range'] = function (test) {
   test.equals(r2[1], t1.children[2]);
   test.equals(r2[2], t1.children[3]);
 
-  var r3 = Tree.nodes_to_range([t1.get_child([3,0,1])
-                               ,t1.get_child([3,0,2,0]
-                              ,t1.get_child([3,0,2,1]))]);
+  var r3 = Tree.nodes_to_range([Tree.get_child([3,0,1],t1)
+                               ,Tree.get_child([3,0,2,0],t1)
+                               ,Tree.get_child([3,0,2,1],t1)]);
   test.equals(r3.length, 2);
-  test.equals(r3[0], t1.get_child([3,0,1]));
-  test.equals(r3[1], t1.get_child([3,0,2]));
+  test.equals(r3[0], Tree.get_child([3,0,1],t1));
+  test.equals(r3[1], Tree.get_child([3,0,2],t1));
 
-  var r4 = Tree.nodes_to_range([t1.get_child([1,0])
-                               ,t1.get_child([3,0,2,1])]);
+  var r4 = Tree.nodes_to_range([Tree.get_child([1,0],t1)
+                               ,Tree.get_child([3,0,2,1],t1)]);
   test.equals(r4.length, 3);
   test.equals(r4[0], t1.children[1]);
   test.equals(r4[1], t1.children[2]);
@@ -425,6 +456,25 @@ exports['nodes_to_range'] = function (test) {
   var r5 = Tree.nodes_to_range([t1.children[1], t1.children[1].children[0]]);
   test.equals(r5.length, 1);
   test.equals(r5[0], t1.children[1]);
+
+  test.done();
+}
+
+exports['is_root'] = function(test) {
+  var t1 = Tree.parse('A,B[a]');
+  test.ok(Tree.is_root(t1[0]));
+  test.ok(Tree.is_root(t1[1]));
+  test.ok(!Tree.is_root(t1[1].children[0]));
+
+  test.done();
+}
+
+
+exports['get_root'] = function (test) {
+  var t1 = Tree.parse('[A,B[a]]');
+  test.equals(Tree.get_root(t1.children[0]), t1);
+  test.equals(Tree.get_root(t1.children[1]), t1);
+  test.equals(Tree.get_root(t1.children[1].children[0]), t1);
 
   test.done();
 }
