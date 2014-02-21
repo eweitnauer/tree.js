@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '0.1.0' };
+var Tree = { version: '0.1.1' };
 
 /// This line is for the automated tests with node.js
 if (typeof(exports) != 'undefined') { exports.Tree = Tree }
@@ -380,6 +380,25 @@ Tree.select_first = function(selector, node) {
     if (n) return n;
   }
   return null;
+}
+
+/// Returns the closest common anchestor of the passed nodes.
+Tree.get_cca = function(nodes) {
+  var paths = nodes.map(function(node) { return Tree.get_path(node) });
+  var same = function(len) {
+    if (paths[0].length<=len) return false;
+    var val = paths[0][len];
+    for (var i=1; i<paths.length; i++) {
+      if (paths[i].length <= len+1) return false; // no need to look further if we are at a leaf already
+      if (paths[i][len] !== val) return false;
+    }
+    return true;
+  }
+  var cpl = 0; // common path length
+  while (same(cpl)) cpl++;
+  var d = paths[0].length-cpl, n = nodes[0];
+  for (var i=0; i<d; i++) n = n.parent;
+  return n;
 }
 
 /// Returns an array of all leaf nodes of the node array or single node passed.
