@@ -9,10 +9,13 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '0.1.1' };
+var Tree = { version: '1.0.0'};
+
 
 /// This line is for the automated tests with node.js
-if (typeof(exports) != 'undefined') { exports.Tree = Tree }
+if (typeof(exports) != 'undefined') {
+  exports.Tree = Tree;
+}
 
 /// Will parse a sting like '[A,B[b1,b2,b3],C]' and return the top-level node of a
 /// tree structure. If there are more than a single top-level node, an array of them
@@ -22,29 +25,25 @@ if (typeof(exports) != 'undefined') { exports.Tree = Tree }
 /// Nodes will also be created in absense of values, e.g. '[,]' will return an object
 /// with empty value that has an array `children` with two nodes with empty values.
 Tree.parse = function(str) {
-  var top = {children:[]};
-  top.children.push({parent: top, value: '', children:[]});
-  var curr = top.children[0];
+  var top = new Tree.Node();
+  var curr = top.append(new Tree.Node());
+  curr.value = '';
   for (var i=0; i<str.length; i++) {
     var c = str[i];
     if (c == '[') {
-      var n = {children: [], parent: curr, value: ''};
-      curr.children.push(n);
-      curr = n;
+      curr = curr.append(new Tree.Node());
+      curr.value = '';
     } else if (c == ']') {
       curr = curr.parent;
       if (curr === top) throw 'parse error';
     } else if (c == ',') {
-      n = {children:[], parent: curr.parent, value: ''};
-      curr.parent.children.push(n);
-      n.ls = curr;
-      curr.rs = n;
-      curr = n;
+      curr = curr.parent.append(new Tree.Node());
+      curr.value = '';
     } else {
       curr.value += c;
     }
   }
-  for (var i=0; i<top.children.length; i++) delete top.children[i].parent;
+  for (var i=0; i<top.children.length; i++) top.children[i].parent = null;
   if (top.children.length === 1) return top.children[0];
   return top.children;
 }
@@ -343,7 +342,7 @@ Tree.map = function(f, node) {
 
 /// Returns an array of all nodes for which the passed selector function returned true. Traverses
 /// the nodes depth-first. The passed node can either be a single node or an array of nodes.
-Tree.select_all = function(selector, node) {
+Tree.filter = function(selector, node) {
   var result = [];
   var nodes = Array.isArray(node) ? node : [node];
   var f = function(node) {
@@ -352,6 +351,13 @@ Tree.select_all = function(selector, node) {
   }
   for (var i=0; i<nodes.length; i++) f(nodes[i]);
   return result;
+}
+
+/// Returns an array of all nodes in the tree of the passed root node. The root node is included.
+/// Traverses the nodes depth-first. The passed node can either be a single node or an array of
+/// nodes.
+Tree.select_all = function(node) {
+  return Tree.filter(function() { return true }, node);
 }
 
 /// Returns the first node in the passed node or its decandents for that the selector function
@@ -403,7 +409,7 @@ Tree.get_cca = function(nodes) {
 
 /// Returns an array of all leaf nodes of the node array or single node passed.
 Tree.get_leaf_nodes = function(node) {
-  return Tree.select_all(function(n) { return !(n.children && n.children.length) }, node);
+  return Tree.filter(function(n) { return !(n.children && n.children.length) }, node);
 }
 
 /// Retruns true if the node is top-level in the tree (its parent is the Tree object).
@@ -421,7 +427,7 @@ Tree.get_root = function(node) {
 /// Returns an array of all nodes that have the passed value in their .value field. Seaches on
 /// the passed array of nodes or single node depth-first.
 Tree.get_by_value = function(value, node) {
-  return Tree.select_all(function(n) { return n.value === value}, node);
+  return Tree.filter(function(n) { return n.value === value}, node);
 }
 
 /// Returns the first node with the passed id or null if no node has the id. Seaches on
@@ -429,3 +435,37 @@ Tree.get_by_value = function(value, node) {
 Tree.get_by_id = function(id, node) {
   return Tree.select_first(function (n) { return n.id === id }, node);
 }
+
+
+/// To get all static methods of the Tree object as instance methods on your
+/// object, you can make it inherit from the "Tree.Node" class (use
+/// `new Tree.Node()` as the prototype).
+Tree.Node = function() {
+  this.children = [];
+  this.parent = null;
+  this.ls = null;
+  this.rs = null;
+  this.id = Tree.uid();
+}
+Tree.Node.prototype.stringify = function() { return Tree.stringify(this) }
+Tree.Node.prototype.clone = function(keep_ids) { return Tree.clone(this, keep_ids) }
+Tree.Node.prototype.insert = function(idx, node) { return Tree.insert(this, idx, node) }
+Tree.Node.prototype.insert_range = function(idx, nodes) { return Tree.insert_range(this, idx, nodes) }
+Tree.Node.prototype.append = function(node) { return Tree.append(this, node) }
+Tree.Node.prototype.remove = function() { return Tree.remove(this) }
+Tree.Node.prototype.remove_range = function(nodes) { return Tree.remove_range(nodes) }
+Tree.Node.prototype.replace_with = function(other) { return Tree.replace(this, other) }
+Tree.Node.prototype.switch_with_sibling = function(other) { return Tree.switch_siblings(this, other) }
+Tree.Node.prototype.validate = function() { return Tree.validate(this) }
+Tree.Node.prototype.get_child = function(path) { return Tree.get_child(path, this) }
+Tree.Node.prototype.get_path = function() { return Tree.get_path(this) }
+Tree.Node.prototype.for_each = function(f) { return Tree.for_each(f, this) }
+Tree.Node.prototype.map = function(f) { return Tree.map(f, this) }
+Tree.Node.prototype.filter = function(f) { return Tree.filter(f, this) }
+Tree.Node.prototype.select_all = function() { return Tree.select_all(this) }
+Tree.Node.prototype.select_first = function(f) { return Tree.select_first(f, this) }
+Tree.Node.prototype.get_leaf_nodes = function() { return Tree.get_leaf_nodes(this) }
+Tree.Node.prototype.is_root = function() { return Tree.is_root(this) }
+Tree.Node.prototype.get_root = function() { return Tree.get_root(this) }
+Tree.Node.prototype.get_by_value = function(value) { return Tree.get_by_value(value, this) }
+Tree.Node.prototype.get_by_id = function(id) { return Tree.get_by_id(id, this) }

@@ -1,0 +1,19 @@
+{
+  "name": "trees-js",
+  "description": "A js library for creating and manipulating fully linked tree structures.",
+  "version": "1.0.0",
+  "keywords": [
+    "tree"
+  ],
+  "author": {
+    "name": "Erik Weitnauer"
+  },
+  "devDependencies": {
+    "uglify-js": "2.x.x",
+    "nodeunit": "0.8.x",
+    "istanbul": "0.2.x"
+  },
+  "scripts": {
+    "test": "make test"
+  }
+}
