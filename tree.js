@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.0.0'};
+var Tree = { version: '1.1.0'};
 
 
 /// This line is for the automated tests with node.js
@@ -27,8 +27,9 @@ if (typeof(exports) != 'undefined') {
 Tree.parse = function(str) {
   var top = new Tree.Node();
   var curr = top.append(new Tree.Node());
+  var i;
   curr.value = '';
-  for (var i=0; i<str.length; i++) {
+  for (i=0; i<str.length; i++) {
     var c = str[i];
     if (c == '[') {
       curr = curr.append(new Tree.Node());
@@ -43,7 +44,7 @@ Tree.parse = function(str) {
       curr.value += c;
     }
   }
-  for (var i=0; i<top.children.length; i++) top.children[i].parent = null;
+  for (i=0; i<top.children.length; i++) top.children[i].parent = null;
   if (top.children.length === 1) return top.children[0];
   return top.children;
 }
@@ -63,12 +64,12 @@ Tree.stringify = function(nodes) {
   }
   if (!Array.isArray(nodes)) nodes = [nodes];
   return nodes.map(f).join(',');
-}
+};
 
 /// Adds a uid() function to Tree, that returns a random hex number with 16 digets as string.
-;(function() {
+(function() {
   var b32 = 0x100000000, f = 0xf, b = []
-      str = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+     ,str = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
   function uid() {
     var i = 0;
     var r = Math.random()*b32;
@@ -90,7 +91,7 @@ Tree.stringify = function(nodes) {
     b[i++] = str[r>>>24 & f];
     b[i++] = str[r>>>28 & f];
     return b.join("");
-  };
+  }
   Tree.uid = uid;
 })();
 
@@ -99,21 +100,21 @@ Tree.stringify = function(nodes) {
 /// all. 'ls', 'rs' and 'parent' will be set to the correct values for all children and will be set to
 /// undefined for the passed node. A new random id is assigned to the cloned node if the original had
 /// an id, unless the optional keep_ids parameter is passed as true.
-/// `nodes` can either be a single node or an array of nodes. Accordingly, a single node or an array
-/// of nodes is returned.
+/// `nodes` can either be a single node or an array of nodes. The cloned node or nodes are returned.
 Tree.clone = function(nodes, keep_ids) {
   var f = function(node) {
+    var i;
     var cloned = new node.constructor();
     for (var key in node) { if (key[0] !== '_') cloned[key] = node[key] }
     delete cloned.ls; delete cloned.rs; delete cloned.parent;
     if (node.id && !keep_ids) cloned.id = Tree.uid();
     if (node.children) {
       cloned.children = [];
-      for (var i=0; i<node.children.length; i++) {
+      for (i=0; i<node.children.length; i++) {
         cloned.children.push(f(node.children[i]));
         cloned.children[i].parent = cloned;
       }
-      for (var i=0; i<node.children.length; i++) {
+      for (i=0; i<node.children.length; i++) {
         cloned.children[i].ls = cloned.children[i-1];
         cloned.children[i].rs = cloned.children[i+1];
       }
@@ -121,9 +122,40 @@ Tree.clone = function(nodes, keep_ids) {
     return cloned;
   }
   if (!Array.isArray(nodes)) return f(nodes);
-  var cloned = [];
-  for (var i=0; i<nodes.length; i++) cloned.push(f(nodes[i]));
+  var cloned = nodes.map(f);
+  // make sure that the cloned nodes are siblings to each other, if the
+  // original nodes were siblings, too
+  if (nodes.length > 1) for (var i=0; i<nodes.length; i++) {
+    if (i>0 && nodes[i].ls === nodes[i-1]) cloned[i].ls = cloned[i-1];
+    if (i<nodes.length-1 && nodes[i].rs === nodes[i+1]) cloned[i].rs = cloned[i+1];
+  }
+
   return cloned;
+}
+
+/**
+ * Pass two identically structured trees or arrays of trees and the method
+ * will return an object that maps the ids of all source tree nodes to the
+ * respective target tree nodes. If the trees / arrays are structured
+ * differently, or if there is a duplicate id in the source nodes, the methods
+ * throws an exception.
+ */
+Tree.get_mapping_between = function(source_tree, target_tree) {
+  var map = {};
+
+  function mapfn(source, target) {
+    if (source.id in map) throw "duplicate id in source tree";
+    map[source.id] = target;
+    if (source.children.length !== target.children.length) throw "tree structures don't match";
+    for (var i=0; i<source.children.length; i++) mapfn(source.children[i], target.children[i]);
+  }
+
+  if (Array.isArray(source_tree)) {
+    if (source_tree.length !== target_tree.length) throw "tree structures don't match";
+    for (var i=0; i<source_tree.length; i++) mapfn(source_tree[i], target_tree[i]);
+  } else mapfn(source_tree, target_tree);
+
+  return map;
 }
 
 /// Returns the smallest range of nodes (continuous, ordered neighbors) covering the passed
@@ -154,8 +186,8 @@ Tree.nodes_to_range = function(nodes) {
   var cca = Tree.get_child(paths[0].slice(0, cpl), tree);
 
   // get the cca's left-most and right-most child that contains one of the nodes
-  var rm=-1, lm=N;
-  for (var i=0; i<N; i++) {
+  var rm=-1, lm=N, i;
+  for (i=0; i<N; i++) {
     var n = Tree.get_child(paths[i].slice(0, cpl+1), tree);
     var idx = cca.children.indexOf(n);
     if (idx > rm) rm = idx;
@@ -164,7 +196,7 @@ Tree.nodes_to_range = function(nodes) {
 
   // now select the whole range of nodes from left to right
   var range = [];
-  for (var i=lm; i<=rm; i++) range.push(cca.children[i]);
+  for (i=lm; i<=rm; i++) range.push(cca.children[i]);
   return range;
 }
 
@@ -192,6 +224,21 @@ Tree.insert_range = function(parent, idx, nodes) {
   if (parent.children[idx]) parent.children[idx].ls = nodes[N-1];
   for (var i=0; i<N; i++) nodes[i].parent = parent;
   parent.children = parent.children.slice(0,idx).concat(nodes, parent.children.slice(idx));
+  return nodes;
+}
+
+/// Appends a range of nodes to the end of the children array of the node `parent`.
+/// The `nodes` array must contain a list of direct siblings ordered from left to right.
+/// Returns the inserted node range.
+Tree.append_range = function(parent, nodes) {
+  var N=nodes.length;
+  if (N===0) return;
+  var last = parent.children[parent.children.length-1];
+  if (last) last.rs = nodes[0];
+  nodes[0].ls = last;
+  nodes[N-1].rs = null;
+  for (var i=0; i<N; i++) nodes[i].parent = parent;
+  parent.children = parent.children.concat(nodes);
   return nodes;
 }
 
@@ -224,7 +271,7 @@ Tree.remove_range = function(nodes) {
   var N = nodes.length;
   if (N === 0) return;
   var siblings = nodes[0].parent.children;
-  idx = siblings.indexOf(nodes[0]);
+  var idx = siblings.indexOf(nodes[0]);
   if (siblings[idx-1]) siblings[idx-1].rs = nodes[N-1].rs;
   if (siblings[idx+N]) siblings[idx+N].ls = nodes[0].ls;
   siblings.splice(idx,N);
@@ -449,8 +496,10 @@ Tree.Node = function() {
 }
 Tree.Node.prototype.stringify = function() { return Tree.stringify(this) }
 Tree.Node.prototype.clone = function(keep_ids) { return Tree.clone(this, keep_ids) }
+Tree.Node.prototype.get_mapping_to = function(target) { return Tree.get_mapping_between(this, target) }
 Tree.Node.prototype.insert = function(idx, node) { return Tree.insert(this, idx, node) }
 Tree.Node.prototype.insert_range = function(idx, nodes) { return Tree.insert_range(this, idx, nodes) }
+Tree.Node.prototype.append_range = function(nodes) { return Tree.append_range(this, nodes) }
 Tree.Node.prototype.append = function(node) { return Tree.append(this, node) }
 Tree.Node.prototype.remove = function() { return Tree.remove(this) }
 Tree.Node.prototype.remove_range = function(nodes) { return Tree.remove_range(nodes) }
@@ -469,3 +518,4 @@ Tree.Node.prototype.is_root = function() { return Tree.is_root(this) }
 Tree.Node.prototype.get_root = function() { return Tree.get_root(this) }
 Tree.Node.prototype.get_by_value = function(value) { return Tree.get_by_value(value, this) }
 Tree.Node.prototype.get_by_id = function(id) { return Tree.get_by_id(id, this) }
+Tree.Node.prototype.has_children = function() { return this.children && this.children.length > 0 }
