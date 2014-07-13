@@ -477,6 +477,52 @@ exports['clone'] = function(test) {
   test.done();
 }
 
+exports['get_1to1_mapping_between'] = function(test) {
+  function set_ids(nodes) {
+    Tree.for_each(function(node) { node.id = node.value }, nodes);
+    return nodes;
+  }
+  var map;
+  var n0 = set_ids(Tree.parse('[A]').children[0]);
+  var c0 = Tree.parse('[A]').children[0];
+  map = Tree.get_1to1_mapping_between(n0, c0);
+  test.strictEqual(map.A, c0);
+
+  var n1 = Tree.parse('O[A,B[1,2],C]');
+  var c1 = Tree.parse('O[A,B[1,2],C]');
+  var mappings = n1.map(function(node) {
+    return {id: node.id, target: c1.get_child(node.get_path())};
+  });
+  map = n1.get_1to1_mapping_to(c1);
+  mappings.forEach(function(mapping) {
+    test.strictEqual(map[mapping.id], mapping.target);
+  });
+
+  var ns = set_ids(Tree.parse('[A,B[b],C]').children);
+  var cs = Tree.clone(ns);
+  map = Tree.get_1to1_mapping_between(ns, cs);
+  test.strictEqual(map.A, cs[0]);
+  test.strictEqual(map.B, cs[1]);
+  test.strictEqual(map.b, cs[1].children[0]);
+  test.strictEqual(map.C, cs[2]);
+
+  var ns2 = Tree.parse('[A]').children;
+  var cs2 = Tree.parse('[A,B]').children;
+  test.throws(function() { Tree.get_1to1_mapping_between(ns2, cs2) }
+             ,"structures don't match");
+
+  var ns3 = Tree.parse('[A]').children;
+  var cs3 = Tree.parse('[A[B]]').children;
+  test.throws(function() { Tree.get_1to1_mapping_between(ns3, cs3) }
+             ,"structures don't match");
+
+  var ns4 = set_ids(Tree.parse('[A,A]').children);
+  test.throws(function() { Tree.get_1to1_mapping_between(ns4, ns4) }
+             ,"duplicate ids");
+
+  test.done();
+}
+
 exports['get_mapping_between'] = function(test) {
   function set_ids(nodes) {
     Tree.for_each(function(node) { node.id = node.value }, nodes);
@@ -486,7 +532,8 @@ exports['get_mapping_between'] = function(test) {
   var n0 = set_ids(Tree.parse('[A]').children[0]);
   var c0 = Tree.parse('[A]').children[0];
   map = Tree.get_mapping_between(n0, c0);
-  test.strictEqual(map.A, c0);
+  test.strictEqual(map.A[0], c0);
+  test.equals(map.A.length, 1);
 
   var n1 = Tree.parse('O[A,B[1,2],C]');
   var c1 = Tree.parse('O[A,B[1,2],C]');
@@ -495,16 +542,32 @@ exports['get_mapping_between'] = function(test) {
   });
   map = n1.get_mapping_to(c1);
   mappings.forEach(function(mapping) {
-    test.strictEqual(map[mapping.id], mapping.target);
+    test.strictEqual(map[mapping.id][0], mapping.target);
+    test.equals(map[mapping.id].length, 1);
   });
 
-  var ns = set_ids(Tree.parse('[A,B[b],C]').children);
-  var cs = Tree.clone(ns);
+  var ns = set_ids(Tree.parse('[A,B]')).children;
+  var cs = set_ids(Tree.parse('[A[a[b],c],B]')).children;
   map = Tree.get_mapping_between(ns, cs);
-  test.strictEqual(map.A, cs[0]);
-  test.strictEqual(map.B, cs[1]);
-  test.strictEqual(map.b, cs[1].children[0]);
-  test.strictEqual(map.C, cs[2]);
+  test.equals(map.A.length, 4);
+  test.strictEqual(map.A[0], cs[0]);
+  test.strictEqual(map.A[1], cs[0].children[0]);
+  test.strictEqual(map.A[2], cs[0].children[0].children[0]);
+  test.strictEqual(map.A[3], cs[0].children[1]);
+  test.equals(map.B.length, 1);
+  test.strictEqual(map.B[0], cs[1]);
+
+  map = Tree.get_mapping_between(cs, ns);
+  test.equals(map.A.length, 1);
+  test.strictEqual(map.A[0], ns[0]);
+  test.equals(map.a.length, 1);
+  test.strictEqual(map.a[0], ns[0]);
+  test.equals(map.b.length, 1);
+  test.strictEqual(map.b[0], ns[0]);
+  test.equals(map.c.length, 1);
+  test.strictEqual(map.c[0], ns[0]);
+  test.equals(map.B.length, 1);
+  test.strictEqual(map.B[0], ns[1]);
 
   var ns2 = Tree.parse('[A]').children;
   var cs2 = Tree.parse('[A,B]').children;
