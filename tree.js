@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.2.1'};
+var Tree = { version: '1.2.2'};
 
 
 /// This line is for the automated tests with node.js
@@ -216,10 +216,9 @@ Tree.nodes_to_range = function(nodes) {
     return Tree.get_path(node);
   });
   var same = function(len) {
-    if (paths[0].length<=len) return false;
     var val = paths[0][len];
-    for (var i=1; i<paths.length; i++) {
-      if (paths[i].length-1 <= len+1) return false; // we want an ancestor, so if already at leaf, return
+    for (var i=0; i<paths.length; i++) {
+      if (paths[i].length <= len+1) return false; // we want an ancestor, so if already at leaf, return
       if (paths[i][len] !== val) return false;
     }
     return true;
@@ -482,9 +481,8 @@ Tree.select_first = function(selector, node) {
 Tree.get_cca = function(nodes) {
   var paths = nodes.map(function(node) { return Tree.get_path(node) });
   var same = function(len) {
-    if (paths[0].length<=len) return false;
     var val = paths[0][len];
-    for (var i=1; i<paths.length; i++) {
+    for (var i=0; i<paths.length; i++) {
       if (paths[i].length <= len+1) return false; // no need to look further if we are at a leaf already
       if (paths[i][len] !== val) return false;
     }

@@ -691,6 +691,10 @@ exports['nodes_to_range'] = function (test) {
   test.equals(r5.length, 1);
   test.equals(r5[0], t1.children[1]);
 
+  var t2 = Tree.parse('[A[a,b,c,d]]');
+  var r6 = Tree.nodes_to_range([t2.get_child([0,0]), t2.get_child([0,2])]);
+  test.equals(r6.length, 3);
+
   test.done();
 }
 
@@ -703,7 +707,7 @@ exports['get_cca'] = function(test) {
   var j = Tree.get_child([3,0], t1);
   var x = Tree.get_child([3,0,0], t1);
   var _2 = Tree.get_child([3,0,2,1], t1);
-  test.equals(Tree.get_cca([a]), a);
+  test.equals(Tree.get_cca([a]), B);
   test.equals(Tree.get_cca([a,b]), B);
   test.equals(Tree.get_cca([x,_2]), j);
   test.equals(Tree.get_cca([b,_2]), t1);
