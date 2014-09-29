@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.2.0'};
+var Tree = { version: '1.2.1'};
 
 
 /// This line is for the automated tests with node.js
@@ -505,6 +505,15 @@ Tree.get_leaf_nodes = function(node) {
 /// Retruns true if the node is top-level in the tree (its parent is the Tree object).
 Tree.is_root = function(node) {
   return !node.parent;
+}
+
+/// Retruns true if the passed node array is a proper node range, which is the
+/// case only if they are all siblings and ordered from left to right.
+Tree.is_range = function(nodes) {
+  for (var i = 1; i < nodes.length; i++) {
+    if (nodes[i-1].rs !== nodes[i]) return false;
+  }
+  return true;
 }
 
 /// Returns the tree that a node belongs to by following the .parent references. Returns

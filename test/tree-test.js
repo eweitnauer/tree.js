@@ -711,6 +711,22 @@ exports['get_cca'] = function(test) {
   test.done();
 }
 
+exports['is_range'] = function(test) {
+  var t1 = Tree.parse('[A,B[a,b],C,D]');
+  var A = t1.children[0]
+    , B = t1.children[1]
+    , C = t1.children[2]
+    , D = t1.children[3]
+    , a = B.children[0]
+    , b = B.children[1];
+  test.ok(Tree.is_range([A,B,C,D]));
+  test.ok(Tree.is_range([C]));
+  test.ok(!Tree.is_range([D,C]));
+  test.ok(Tree.is_range([a,b]));
+  test.ok(!Tree.is_range([B,a]));
+  test.done();
+}
+
 exports['is_root'] = function(test) {
   var t1 = Tree.parse('A,B[a]');
   test.ok(Tree.is_root(t1[0]));
