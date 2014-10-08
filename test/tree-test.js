@@ -387,6 +387,40 @@ exports['filter'] = function(test) {
   test.done();
 }
 
+exports['filterRange'] = function(test) {
+  var true_fn = function() {return true};
+  var ranges_to_arr = function(ranges) {
+    return ranges.map(function (range) {
+      return range.map(function(n) { return n.value }).join('')
+    });
+  }
+  var t0 = Tree.parse('');
+  var res = Tree.filterRange(true_fn, t0.children);
+  test.equals(res.length, 0);
+
+  var t1 = Tree.parse('A,B,C');
+  res = Tree.filterRange(true_fn, t1);
+  res = ranges_to_arr(res);
+  test.deepEqual(res, ['A', 'AB', 'ABC', 'B', 'BC', 'C']);
+
+  var t1b = Tree.parse('A[B,C]');
+  res = t1b.filterRange(true_fn);
+  res = ranges_to_arr(res);
+  test.deepEqual(res, ['A', 'B', 'BC', 'C']);
+
+  var t2 = Tree.parse('[A[a,b],B,C[x[y]]]');
+  res = Tree.filterRange(function (ns) { return ns.length == 2 }, t2.children);
+  res = ranges_to_arr(res);
+  test.deepEqual(res, ['AB', 'ab', 'BC']);
+  res = Tree.filterRange(function (ns) { return ns[0].value == 'x' }, t2.children);
+  res = ranges_to_arr(res);
+  test.deepEqual(res, ['x']);
+  res = Tree.filterRange(function () { return false }, t2.children);
+  test.deepEqual(res, []);
+
+  test.done();
+}
+
 exports['select_all'] = function(test) {
   var t0 = Tree.parse('');
   var res = Tree.select_all(t0.children);

@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.2.2'};
+var Tree = { version: '1.2.3'};
 
 
 /// This line is for the automated tests with node.js
@@ -282,6 +282,24 @@ Tree.append_range = function(parent, nodes) {
   for (var i=0; i<N; i++) nodes[i].parent = parent;
   parent.children = parent.children.concat(nodes);
   return nodes;
+}
+
+/// Returns an array of all node ranges for which the passed selector function
+/// returned true. The passed node can either be a single node or an array of nodes.
+Tree.filterRange = function(selector, node) {
+  var result = [];
+  var nodes = Array.isArray(node) ? node : [node];
+  var f = function(nodes, idx) {
+    var range = [];
+    for (var i=idx; i<nodes.length; i++) {
+      range.push(nodes[i]);
+      if (selector(range)) result.push(range.slice());
+    }
+    if (nodes[idx].children)
+      for (var i=0; i<nodes[idx].children.length; i++) f(nodes[idx].children, i);
+  }
+  for (var i=0; i<nodes.length; i++) f(nodes, i);
+  return result;
 }
 
 /// Inserts a node into the tree as the last child of 'parent'. Returns the inserted node.
@@ -562,6 +580,7 @@ Tree.Node.prototype.get_path = function() { return Tree.get_path(this) }
 Tree.Node.prototype.for_each = function(f) { return Tree.for_each(f, this) }
 Tree.Node.prototype.map = function(f) { return Tree.map(f, this) }
 Tree.Node.prototype.filter = function(f) { return Tree.filter(f, this) }
+Tree.Node.prototype.filterRange = function(f) { return Tree.filterRange(f, this) }
 Tree.Node.prototype.select_all = function() { return Tree.select_all(this) }
 Tree.Node.prototype.select_first = function(f) { return Tree.select_first(f, this) }
 Tree.Node.prototype.get_leaf_nodes = function() { return Tree.get_leaf_nodes(this) }
