@@ -669,6 +669,19 @@ exports['get_child'] = function(test){
   test.done()
 }
 
+exports['get_parent'] = function(test){
+  var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
+  var n = t1.get_child([3,0,2,1]);
+  test.equals(Tree.get_parent(0, n).value, '2');
+  test.equals(n.get_parent(1).value, 'z');
+  test.equals(n.get_parent(2).value, 'j');
+  test.equals(n.get_parent(3).value, 'D');
+  test.equals(n.get_parent(4).value, '');
+  test.throws(function(){n.get_parent(5)});
+
+  test.done()
+}
+
 exports['get_path'] = function(test){
   var t1 = Tree.parse('[A,B[a,b],C,D[j[x,y,z[1,2]]]]')
 

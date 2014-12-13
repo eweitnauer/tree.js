@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.2.3'};
+var Tree = { version: '1.2.4'};
 
 
 /// This line is for the automated tests with node.js
@@ -411,6 +411,16 @@ Tree.get_child = function(path, node) {
   return node;
 }
 
+/// Safe way to get to a nodes anchestors. If a parent does not exist, throws
+/// an invalid path exception.
+Tree.get_parent = function(level, node) {
+  for (var i=0; i<level; i++) {
+    if (node.parent) node = node.parent;
+    else throw 'invalid path';
+  }
+  return node;
+}
+
 /// Pass a node to get an array of children-indices from the root to the
 /// passed node. This is the inverse function to Tree.get_child.
 Tree.get_path = function(node) {
@@ -576,6 +586,7 @@ Tree.Node.prototype.replace_with = function(other) { return Tree.replace(this, o
 Tree.Node.prototype.switch_with_sibling = function(other) { return Tree.switch_siblings(this, other) }
 Tree.Node.prototype.validate = function() { return Tree.validate(this) }
 Tree.Node.prototype.get_child = function(path) { return Tree.get_child(path, this) }
+Tree.Node.prototype.get_parent = function(level) { return Tree.get_parent(level, this) }
 Tree.Node.prototype.get_path = function() { return Tree.get_path(this) }
 Tree.Node.prototype.for_each = function(f) { return Tree.for_each(f, this) }
 Tree.Node.prototype.map = function(f) { return Tree.map(f, this) }
