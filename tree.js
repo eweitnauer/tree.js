@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.2.4'};
+var Tree = { version: '1.2.5'};
 
 
 /// This line is for the automated tests with node.js
@@ -228,7 +228,7 @@ Tree.nodes_to_range = function(nodes) {
   var cca = Tree.get_child(paths[0].slice(0, cpl), tree);
 
   // get the cca's left-most and right-most child that contains one of the nodes
-  var rm=-1, lm=N, i;
+  var rm=-1, lm=cca.children.length, i;
   for (i=0; i<N; i++) {
     var n = Tree.get_child(paths[i].slice(0, cpl+1), tree);
     var idx = cca.children.indexOf(n);

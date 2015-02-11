@@ -742,6 +742,12 @@ exports['nodes_to_range'] = function (test) {
   var r6 = Tree.nodes_to_range([t2.get_child([0,0]), t2.get_child([0,2])]);
   test.equals(r6.length, 3);
 
+  var t3 = Tree.parse('[a,b,c,d,e,f]');
+  var r7 = Tree.nodes_to_range([t3.children[4], t3.children[5]]);
+  test.equals(r7.length, 2);
+  test.equals(r7[0].value, 'e');
+  test.equals(r7[1].value, 'f');
+
   test.done();
 }
 
