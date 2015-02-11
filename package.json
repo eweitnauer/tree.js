@@ -1,7 +1,7 @@
 {
   "name": "tree.js",
   "description": "A javascript library for creating and manipulating fully linked tree structures.",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "keywords": [
     "tree"
   ],
