@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.3.0'};
+var Tree = { version: '1.3.1'};
 
 
 /// This line is for the automated tests with node.js
@@ -90,7 +90,7 @@ Tree.stringify = function(nodes) {
     b[i++] = str[r>>>20 & f];
     b[i++] = str[r>>>24 & f];
     b[i++] = str[r>>>28 & f];
-    return b.join("");
+    return "_" + b.join("");
   }
   Tree.uid = uid;
 })();
@@ -101,11 +101,15 @@ Tree.stringify = function(nodes) {
 /// undefined for the passed node. A new random id is assigned to the cloned node if the original had
 /// an id, unless the optional keep_ids parameter is passed as true.
 /// `nodes` can either be a single node or an array of nodes. The cloned node or nodes are returned.
-Tree.clone = function(nodes, keep_ids) {
+Tree.clone = function(nodes, keep_ids, fields_to_clone) {
   var f = function(node) {
     var i;
     var cloned = new node.constructor();
-    for (var key in node) { if (key[0] !== '_') cloned[key] = node[key] }
+    if (fields_to_clone) {
+      for (i=0; i<fields_to_clone.length; i++) cloned[fields_to_clone[i]] = node[fields_to_clone[i]];
+    } else {
+      for (var key in node) { if (key[0] !== '_') cloned[key] = node[key] }
+    }
     delete cloned.ls; delete cloned.rs; delete cloned.parent;
     if (node.id && !keep_ids) cloned.id = Tree.uid();
     if (node.children) {
@@ -585,7 +589,7 @@ Tree.Node = function() {
   this.id = Tree.uid();
 }
 Tree.Node.prototype.stringify = function() { return Tree.stringify(this) }
-Tree.Node.prototype.clone = function(keep_ids) { return Tree.clone(this, keep_ids) }
+Tree.Node.prototype.clone = function(keep_ids, fields_to_clone) { return Tree.clone(this, keep_ids, fields_to_clone) }
 Tree.Node.prototype.get_mapping_to = function(target) { return Tree.get_mapping_between(this, target) }
 Tree.Node.prototype.get_1to1_mapping_to = function(target, strict) { return Tree.get_1to1_mapping_between(this, target, strict) }
 Tree.Node.prototype.insert = function(idx, node) { return Tree.insert(this, idx, node) }
