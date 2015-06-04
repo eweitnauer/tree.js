@@ -520,7 +520,7 @@ exports['get_1to1_mapping_between'] = function(test) {
   var n0 = set_ids(Tree.parse('[A]').children[0]);
   var c0 = Tree.parse('[A]').children[0];
   map = Tree.get_1to1_mapping_between(n0, c0);
-  test.strictEqual(map.A, c0);
+  test.strictEqual(map.A[0], c0);
 
   var n1 = Tree.parse('O[A,B[1,2],C]');
   var c1 = Tree.parse('O[A,B[1,2],C]');
@@ -529,16 +529,20 @@ exports['get_1to1_mapping_between'] = function(test) {
   });
   map = n1.get_1to1_mapping_to(c1);
   mappings.forEach(function(mapping) {
-    test.strictEqual(map[mapping.id], mapping.target);
+    test.strictEqual(map[mapping.id][0], mapping.target);
   });
 
   var ns = set_ids(Tree.parse('[A,B[b],C]').children);
   var cs = Tree.clone(ns);
   map = Tree.get_1to1_mapping_between(ns, cs);
-  test.strictEqual(map.A, cs[0]);
-  test.strictEqual(map.B, cs[1]);
-  test.strictEqual(map.b, cs[1].children[0]);
-  test.strictEqual(map.C, cs[2]);
+  test.strictEqual(map.A.length, 1);
+  test.strictEqual(map.A[0], cs[0]);
+  test.strictEqual(map.B[0], cs[1]);
+  test.strictEqual(map.B.length, 1);
+  test.strictEqual(map.b[0], cs[1].children[0]);
+  test.strictEqual(map.b.length, 1);
+  test.strictEqual(map.C[0], cs[2]);
+  test.strictEqual(map.C.length, 1);
 
   var ns2 = Tree.parse('[A]').children;
   var cs2 = Tree.parse('[A,B]').children;
@@ -550,8 +554,17 @@ exports['get_1to1_mapping_between'] = function(test) {
   test.throws(function() { Tree.get_1to1_mapping_between(ns3, cs3) }
              ,"structures don't match");
 
-  var ns4 = set_ids(Tree.parse('[A,A]').children);
-  test.throws(function() { Tree.get_1to1_mapping_between(ns4, ns4) }
+  var ns4 = set_ids(Tree.parse('[A[B],C]').children);
+  var cs4 = Tree.parse('[A,C,D]').children;
+  map = Tree.get_1to1_mapping_between(ns4, cs4, false);
+  test.strictEqual(map.A.length, 1);
+  test.strictEqual(map.A[0], cs4[0]);
+  test.strictEqual(map.B.length, 0);
+  test.strictEqual(map.C[0], cs4[1]);
+  test.strictEqual(map.C.length, 1);
+
+  var ns5 = set_ids(Tree.parse('[A,A]').children);
+  test.throws(function() { Tree.get_1to1_mapping_between(ns5, ns5) }
              ,"duplicate ids");
 
   test.done();
