@@ -329,7 +329,8 @@ Tree.append = function(parent, node) {
   return node;
 }
 
-/// Removes the passed node from the tree and returns its previous index.
+/// Removes the passed node from the tree and returns its previous index. Sets
+/// node.parent to null.
 Tree.remove = function(node) {
   var idx;
   var siblings = node.parent.children;
@@ -337,12 +338,13 @@ Tree.remove = function(node) {
   if (siblings[idx-1]) siblings[idx-1].rs = node.rs;
   if (siblings[idx+1]) siblings[idx+1].ls = node.ls;
   siblings.splice(idx,1);
+  node.parent = null;
   return idx;
 }
 
 /// Removes a range of nodes from the tree and returns the index of the first node if
 /// nodes contained more than zero nodes. The `nodes` array must contain a list of direct
-/// siblings ordered from left to right.
+/// siblings ordered from left to right. Sets the removed nodes' parent link to null.
 Tree.remove_range = function(nodes) {
   var N = nodes.length;
   if (N === 0) return;
@@ -351,6 +353,7 @@ Tree.remove_range = function(nodes) {
   if (siblings[idx-1]) siblings[idx-1].rs = nodes[N-1].rs;
   if (siblings[idx+N]) siblings[idx+N].ls = nodes[0].ls;
   siblings.splice(idx,N);
+  for (var i=0; i<nodes.length; i++) nodes[i].parent = null;
   return idx;
 }
 
@@ -360,8 +363,9 @@ Tree.remove_range = function(nodes) {
 /// Returns the inserted node.
 Tree.replace = function(n1, n2) {
   if (n2.parent) Tree.remove(n2);
-  var idx = Tree.remove(n1);
-  return Tree.insert(n1.parent, idx, n2);
+  var parent = n1.parent
+    , idx = Tree.remove(n1);
+  return Tree.insert(parent, idx, n2);
 }
 
 /// Will switch n1 with n2 if they have the same parent. Otherwise throws an exception.

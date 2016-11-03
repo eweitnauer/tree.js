@@ -163,9 +163,11 @@ exports['remove_range'] = function(test) {
   test.doesNotThrow(function(){Tree.remove_range([])});
 
   var t1 = Tree.parse('[A,B,C]');
+  var n = t1.children[1];
   var idx = Tree.remove_range([t1.children[1]]);
   test.equals(Tree.stringify(t1), '[A,C]');
   test.equals(idx, 1);
+  test.equals(n.parent, null);
   test.doesNotThrow(function(){Tree.validate(t1)});
 
   var t2 = Tree.parse('[A,B[a,b],C,D]');
@@ -225,7 +227,9 @@ exports['remove'] = function(test) {
   var idx;
 
   var t0 = Tree.parse('[A,B,C]');
-  idx = Tree.remove(t0.children[1]);
+  var n = t0.children[1];
+  idx = Tree.remove(n);
+  test.equals(n.parent, null);
   test.equals(Tree.stringify(t0), '[A,C]');
   test.doesNotThrow(function(){Tree.validate(t0)});
   test.equals(idx, 1);
