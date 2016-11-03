@@ -817,3 +817,16 @@ exports['get_root'] = function (test) {
 
   test.done();
 }
+
+exports['get_idx'] = function (test) {
+  var t1 = Tree.parse('[A,B[a],C]');
+  test.equals(Tree.get_idx(t1.children[0]), 0);
+  test.equals(t1.children[2].get_idx(), 2);
+  test.equals(t1.children[1].children[0].get_idx(), 0);
+  test.equals(Tree.get_idx(t1), -1);
+  var c = t1.children[1];
+  c.remove();
+  test.equals(c.get_idx(), -1);
+
+  test.done();
+}

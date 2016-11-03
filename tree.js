@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.3.1'};
+var Tree = { version: '1.3.2'};
 
 
 /// This line is for the automated tests with node.js
@@ -416,6 +416,13 @@ Tree.validate = function(nodes) {
   for (var i=0; i<nodes.length; i++) check(nodes[i], null);
 }
 
+/// Returns the index of the passed node in its parent node or -1 if it does not
+/// have a parent.
+Tree.get_idx = function(node) {
+  if (node.parent) return node.parent.children.indexOf(node);
+  else return -1;
+}
+
 /// Pass the parent node and then a sequence of children indices to get a specific
 /// child. E.g. for `[A[B,C[D]]]`, Tree.get(t, [0, 1, 0]) will return node `D`.
 /// If the path does not exist, the method throws an 'invalid path' exception.
@@ -616,3 +623,4 @@ Tree.Node.prototype.get_root = function() { return Tree.get_root(this) }
 Tree.Node.prototype.get_by_value = function(value) { return Tree.get_by_value(value, this) }
 Tree.Node.prototype.get_by_id = function(id) { return Tree.get_by_id(id, this) }
 Tree.Node.prototype.has_children = function() { return this.children && this.children.length > 0 }
+Tree.Node.prototype.get_idx = function() { return Tree.get_idx(this) }
