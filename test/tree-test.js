@@ -679,9 +679,9 @@ exports['get_child'] = function(test){
   test.equals(Tree.get_child([1, 1],t1).value, 'b')
   test.equals(Tree.get_child([3,0,2,1],t1).value, '2')
   test.equals(t1.get_child([3,0,2,1]).value, '2')
-  test.throws(function(){Tree.get_child([4],t1)})
-  test.throws(function(){Tree.get_child([1,3],t1)})
-  test.throws(function(){Tree.get_child([1,0,0],t1)})
+  test.equals(Tree.get_child([4],t1), null);
+  test.equals(Tree.get_child([1,3],t1), null);
+  test.equals(Tree.get_child([1,0,0],t1), null);
 
   test.done()
 }
@@ -694,7 +694,7 @@ exports['get_parent'] = function(test){
   test.equals(n.get_parent(2).value, 'j');
   test.equals(n.get_parent(3).value, 'D');
   test.equals(n.get_parent(4).value, '');
-  test.throws(function(){n.get_parent(5)});
+  test.equals(n.get_parent(5), null);
 
   test.done()
 }

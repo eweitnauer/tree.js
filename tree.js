@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.3.2'};
+var Tree = { version: '1.3.4'};
 
 
 /// This line is for the automated tests with node.js
@@ -429,21 +429,21 @@ Tree.get_idx = function(node) {
 
 /// Pass the parent node and then a sequence of children indices to get a specific
 /// child. E.g. for `[A[B,C[D]]]`, Tree.get(t, [0, 1, 0]) will return node `D`.
-/// If the path does not exist, the method throws an 'invalid path' exception.
+/// If the path does not exist, the method returns null.
 Tree.get_child = function(path, node) {
   for (var i=0; i<path.length; i++) {
-    if (!node.children || node.children.length <= path[i]) throw 'invalid path';
+    if (!node.children || node.children.length <= path[i]) return null;
     node = node.children[path[i]];
   }
   return node;
 }
 
-/// Safe way to get to a nodes anchestors. If a parent does not exist, throws
-/// an invalid path exception.
+/// Safe way to get to a nodes anchestors. If a parent does not exist, it will
+/// return null.
 Tree.get_parent = function(level, node) {
   for (var i=0; i<level; i++) {
     if (node.parent) node = node.parent;
-    else throw 'invalid path';
+    else return null;
   }
   return node;
 }
