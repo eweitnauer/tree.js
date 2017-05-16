@@ -1,3 +1,7 @@
+v1.3.6
+
+- check whether n1 === n2 in Tree.replace(n1, n2)
+
 v1.3.5
 
 - new parameter for the filterRange method: `no_overlap`, default is false which is the previous behavior

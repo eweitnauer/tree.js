@@ -278,6 +278,11 @@ exports['replace'] = function(test) {
   test.doesNotThrow(function(){Tree.validate(t2)});
   test.doesNotThrow(function(){Tree.validate(t3)});
 
+  var t4 = Tree.parse('[A,B]');
+  Tree.replace(t4.children[0], t4.children[0]);
+  test.equals(Tree.stringify(t4), '[A,B]');
+  test.doesNotThrow(function(){Tree.validate(t4)});
+
   test.done();
 }
 

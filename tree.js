@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.3.5'};
+var Tree = { version: '1.3.6'};
 
 
 /// This line is for the automated tests with node.js
@@ -369,6 +369,7 @@ Tree.remove_range = function(nodes) {
 /// to replace a node with its child.
 /// Returns the inserted node.
 Tree.replace = function(n1, n2) {
+  if (n1 === n2) return n1;
   if (n2.parent) Tree.remove(n2);
   var parent = n1.parent
     , idx = Tree.remove(n1);
