@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.3.4'};
+var Tree = { version: '1.3.5'};
 
 
 /// This line is for the automated tests with node.js
@@ -302,19 +302,26 @@ Tree.append_range = function(parent, nodes) {
 
 /// Returns an array of all node ranges for which the passed selector function
 /// returned true. The passed node can either be a single node or an array of nodes.
-Tree.filterRange = function(selector, node) {
+/// If no_overlap is set to true, the function will not search children of a
+/// successful match and will not include any nodes used in a successful match again.
+Tree.filterRange = function(selector, node, no_overlap) {
   var result = [];
   var nodes = Array.isArray(node) ? node : [node];
   var f = function(nodes, idx) {
-    var range = [];
+    var range = [], n = nodes[idx];
     for (var i=idx; i<nodes.length; i++) {
       range.push(nodes[i]);
-      if (selector(range)) result.push(range.slice());
+      if (selector(range)) {
+        result.push(range.slice());
+        if (no_overlap) return i-idx;
+      }
     }
-    if (nodes[idx].children)
-      for (var i=0; i<nodes[idx].children.length; i++) f(nodes[idx].children, i);
+    if (n.children) {
+      for (var i=0; i<n.children.length; i++) i += f(n.children, i);
+    }
+    return 0;
   }
-  for (var i=0; i<nodes.length; i++) f(nodes, i);
+  for (var i=0; i<nodes.length; i++) i += f(nodes, i);
   return result;
 }
 
@@ -618,7 +625,7 @@ Tree.Node.prototype.get_path = function() { return Tree.get_path(this) }
 Tree.Node.prototype.for_each = function(f) { return Tree.for_each(f, this) }
 Tree.Node.prototype.map = function(f) { return Tree.map(f, this) }
 Tree.Node.prototype.filter = function(f) { return Tree.filter(f, this) }
-Tree.Node.prototype.filterRange = function(f) { return Tree.filterRange(f, this) }
+Tree.Node.prototype.filterRange = function(f, no_overlap) { return Tree.filterRange(f, this, no_overlap) }
 Tree.Node.prototype.select_all = function() { return Tree.select_all(this) }
 Tree.Node.prototype.select_first = function(f) { return Tree.select_first(f, this) }
 Tree.Node.prototype.get_leaf_nodes = function() { return Tree.get_leaf_nodes(this) }

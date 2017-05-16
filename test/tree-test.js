@@ -422,6 +422,14 @@ exports['filterRange'] = function(test) {
   res = Tree.filterRange(function () { return false }, t2.children);
   test.deepEqual(res, []);
 
+  var t3 = Tree.parse('[a[b,c],d,e,f]');
+  res = Tree.filterRange(function (ns) { return ns.length == 2 }, t3.children, false);
+  res = ranges_to_arr(res);
+  test.deepEqual(res, ['ad', 'bc', 'de', 'ef']);
+  var res_no_overlap = Tree.filterRange(function (ns) { return ns.length == 2 }, t3.children, true);
+  res_no_overlap = ranges_to_arr(res_no_overlap);
+  test.deepEqual(res_no_overlap, ['ad', 'ef']);
+
   test.done();
 }
 
