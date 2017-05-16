@@ -1,3 +1,7 @@
+v1.3.7
+
+- rebuilt the tree.min.js file
+
 v1.3.6
 
 - check whether n1 === n2 in Tree.replace(n1, n2)

@@ -9,7 +9,7 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
-var Tree = { version: '1.3.6'};
+var Tree = { version: '1.3.7'};
 
 
 /// This line is for the automated tests with node.js
