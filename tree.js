@@ -10,8 +10,8 @@ Most of the methods can accept both a single node or an array of nodes to work o
 */
 
 /// To get all static methods of the Tree object as instance methods on your
-/// object, you can make it inherit from the "Node" class
-class Node {
+/// object, you can make it inherit from the "TreeNode" class
+class TreeNode {
   constructor() {
     this.children = [];
     this.parent = null;
@@ -166,20 +166,20 @@ class Tree {
   /// Nodes will also be created in absense of values, e.g. '[,]' will return an object
   /// with empty value that has an array `children` with two nodes with empty values.
   static parse(str) {
-    const top = new Node();
-    let curr = top.append(new Node());
+    const top = new TreeNode();
+    let curr = top.append(new TreeNode());
     let i;
     curr.value = '';
     for (i = 0; i < str.length; i++) {
       const c = str[i];
       if (c == '[') {
-        curr = curr.append(new Node());
+        curr = curr.append(new TreeNode());
         curr.value = '';
       } else if (c == ']') {
         curr = curr.parent;
         if (curr === top) throw 'parse error';
       } else if (c == ',') {
-        curr = curr.parent.append(new Node());
+        curr = curr.parent.append(new TreeNode());
         curr.value = '';
       } else {
         curr.value += c;
@@ -604,7 +604,7 @@ class Tree {
     return path;
   }
   /// Calls the passed function for the passed node and all its descandents in depth-first order.
-  /// Node can either be a single node or an array of nodes.
+  /// TreeNode can either be a single node or an array of nodes.
   static for_each(f, node) {
     const nodes = Array.isArray(node) ? node : [node];
     const traverse = function (node) {
@@ -615,7 +615,7 @@ class Tree {
     for (let i = 0; i < nodes.length; i++) traverse(nodes[i]);
   }
   /// Calls the passed function for each of the passed nodes and their anchestors, depth-first.
-  /// The results are stored in an array that is returned. Node can either be a single node or
+  /// The results are stored in an array that is returned. TreeNode can either be a single node or
   /// an array of nodes.
   static map(f, node) {
     const nodes = Array.isArray(node) ? node : [node];
@@ -650,7 +650,7 @@ class Tree {
     }, node);
   }
   /// Returns the first node in the passed node or its decandents for that the selector function
-  /// returns true. Traverses depth-first. Node can either be a single node or an array of nodes.
+  /// returns true. Traverses depth-first. TreeNode can either be a single node or an array of nodes.
   /// If no nodes matches, returns null.
   static select_first(selector, node) {
     const f = function (node) {
@@ -736,7 +736,7 @@ class Tree {
   }
   static uid = uid;
   static version = '1.3.7';
-  static Node = Node;
+  static Node = TreeNode;
 }
 
 /// This line is for the automated tests with node.js
