@@ -473,9 +473,8 @@ class Tree {
   /// Removes the passed node from the tree and returns its previous index. Sets
   /// node.parent to null.
   static remove(node) {
-    let idx;
     const siblings = node.parent.children;
-    idx = siblings.indexOf(node);
+    const idx = siblings.indexOf(node);
     if (siblings[idx - 1]) siblings[idx - 1].rs = node.rs;
     if (siblings[idx + 1]) siblings[idx + 1].ls = node.ls;
     siblings.splice(idx, 1);
@@ -691,8 +690,8 @@ class Tree {
     };
     let cpl = 0; // common path length
     while (same(cpl)) cpl++;
-    let d = paths[0].length - cpl,
-      n = nodes[0];
+    const d = paths[0].length - cpl;
+    let n = nodes[0];
     for (let i = 0; i < d; i++) n = n.parent;
     return n;
   }
