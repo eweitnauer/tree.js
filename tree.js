@@ -46,7 +46,7 @@ class Tree {
   /// of a tree and the `value` fields of its nodes. `nodes` can be a single node or an
   /// array of nodes.
   static stringify(nodes) {
-    var f = function (node) {
+    const f = function (node) {
       let str = '';
       if ('value' in node) str += node.value;
       if (node.children && node.children[0]) {
@@ -65,7 +65,7 @@ class Tree {
   /// an id, unless the optional keep_ids parameter is passed as true.
   /// `nodes` can either be a single node or an array of nodes. The cloned node or nodes are returned.
   static clone(nodes, keep_ids, fields_to_clone) {
-    var f = function (node) {
+    const f = function (node) {
       let i;
       const cloned = new node.constructor();
       if (fields_to_clone) {
@@ -292,10 +292,10 @@ class Tree {
   static filterRange(selector, node, no_overlap) {
     const result = [];
     const nodes = Array.isArray(node) ? node : [node];
-    var f = function (nodes, idx) {
+    const f = function (nodes, idx) {
       const range = [],
         n = nodes[idx];
-      for (var i = idx; i < nodes.length; i++) {
+      for (let i = idx; i < nodes.length; i++) {
         range.push(nodes[i]);
         if (selector(range)) {
           result.push(range.slice());
@@ -303,7 +303,7 @@ class Tree {
         }
       }
       if (n.children) {
-        for (var i = 0; i < n.children.length; i++) i += f(n.children, i);
+        for (let i = 0; i < n.children.length; i++) i += f(n.children, i);
       }
       return 0;
     };
@@ -402,7 +402,7 @@ class Tree {
   /// `nodes` can either be a single node or an array of nodes. Accordingly, a single node or an array
   /// of nodes is returned.
   static validate(nodes) {
-    var check = function (node, parent) {
+    const check = function (node, parent) {
       if (node.parent != parent) throw 'wrong parent information';
       if (node.children) {
         for (let i = 0; i < node.children.length; i++) {
@@ -458,7 +458,7 @@ class Tree {
   /// Node can either be a single node or an array of nodes.
   static for_each(f, node) {
     const nodes = Array.isArray(node) ? node : [node];
-    var traverse = function (node) {
+    const traverse = function (node) {
       f(node);
       if (node.children)
         for (let i = 0; i < node.children.length; i++) traverse(node.children[i]);
@@ -471,7 +471,7 @@ class Tree {
   static map(f, node) {
     const nodes = Array.isArray(node) ? node : [node];
     const res = [];
-    var traverse = function (node) {
+    const traverse = function (node) {
       res.push(f(node));
       if (node.children)
         for (let i = 0; i < node.children.length; i++) traverse(node.children[i]);
@@ -484,7 +484,7 @@ class Tree {
   static filter(selector, node) {
     const result = [];
     const nodes = Array.isArray(node) ? node : [node];
-    var f = function (node) {
+    const f = function (node) {
       if (selector(node)) result.push(node);
       if (node.children)
         for (let i = 0; i < node.children.length; i++) f(node.children[i]);
