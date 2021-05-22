@@ -17,12 +17,12 @@ class Tree {
   /// Nodes will also be created in absense of values, e.g. '[,]' will return an object
   /// with empty value that has an array `children` with two nodes with empty values.
   static parse(str) {
-    var top = new Node();
-    var curr = top.append(new Node());
-    var i;
+    const top = new Node();
+    let curr = top.append(new Node());
+    let i;
     curr.value = '';
     for (i = 0; i < str.length; i++) {
-      var c = str[i];
+      const c = str[i];
       if (c == '[') {
         curr = curr.append(new Node());
         curr.value = '';
@@ -47,7 +47,7 @@ class Tree {
   /// array of nodes.
   static stringify(nodes) {
     var f = function (node) {
-      var str = '';
+      let str = '';
       if ('value' in node) str += node.value;
       if (node.children && node.children[0]) {
         str += '[' + node.children.map(f).join(',') + ']';
@@ -66,13 +66,13 @@ class Tree {
   /// `nodes` can either be a single node or an array of nodes. The cloned node or nodes are returned.
   static clone(nodes, keep_ids, fields_to_clone) {
     var f = function (node) {
-      var i;
-      var cloned = new node.constructor();
+      let i;
+      const cloned = new node.constructor();
       if (fields_to_clone) {
         for (i = 0; i < fields_to_clone.length; i++)
           cloned[fields_to_clone[i]] = node[fields_to_clone[i]];
       } else {
-        for (var key in node) {
+        for (const key in node) {
           if (key[0] !== '_') cloned[key] = node[key];
         }
       }
@@ -94,11 +94,11 @@ class Tree {
       return cloned;
     };
     if (!Array.isArray(nodes)) return f(nodes);
-    var cloned = nodes.map(f);
+    const cloned = nodes.map(f);
     // make sure that the cloned nodes are siblings to each other, if the
     // original nodes were siblings, too
     if (nodes.length > 1)
-      for (var i = 0; i < nodes.length; i++) {
+      for (let i = 0; i < nodes.length; i++) {
         if (i > 0 && nodes[i].ls === nodes[i - 1]) cloned[i].ls = cloned[i - 1];
         if (i < nodes.length - 1 && nodes[i].rs === nodes[i + 1])
           cloned[i].rs = cloned[i + 1];
@@ -128,7 +128,7 @@ class Tree {
    * are duplicate ids in the source tree.
    */
   static get_mapping_between(source_tree, target_tree) {
-    var map = {};
+    const map = {};
 
     function mapfn(source, target) {
       if (source.id in map) throw 'duplicate id in source tree';
@@ -141,14 +141,14 @@ class Tree {
           });
         else throw "tree structures don't match";
       } else {
-        for (var i = 0; i < source.children.length; i++)
+        for (let i = 0; i < source.children.length; i++)
           mapfn(source.children[i], target.children[i]);
       }
     }
 
     if (Array.isArray(source_tree)) {
       if (source_tree.length !== target_tree.length) throw "tree structures don't match";
-      for (var i = 0; i < source_tree.length; i++) mapfn(source_tree[i], target_tree[i]);
+      for (let i = 0; i < source_tree.length; i++) mapfn(source_tree[i], target_tree[i]);
     } else mapfn(source_tree, target_tree);
 
     return map;
@@ -164,16 +164,16 @@ class Tree {
    * mapping is returned.
    */
   static get_1to1_mapping_between(source_tree, target_tree, strict) {
-    var map = {};
+    const map = {};
     if (arguments.length < 3) strict = true;
     function mapfn(source, target) {
       if (strict && source.id in map) throw 'duplicate id in source tree';
       map[source.id] = [target];
       if (strict && source.children.length !== target.children.length)
         throw "tree structures don't match";
-      var slen = source.children.length,
+      const slen = source.children.length,
         tlen = target.children.length;
-      for (var i = 0; i < slen; i++) {
+      for (let i = 0; i < slen; i++) {
         if (i < tlen) mapfn(source.children[i], target.children[i]);
         else
           source.children[i].for_each(function (s) {
@@ -185,9 +185,9 @@ class Tree {
     if (Array.isArray(source_tree)) {
       if (strict && source_tree.length !== target_tree.length)
         throw "tree structures don't match";
-      var slen = source_tree.length,
+      const slen = source_tree.length,
         tlen = target_tree.length;
-      for (var i = 0; i < slen; i++) {
+      for (let i = 0; i < slen; i++) {
         if (i < tlen) mapfn(source_tree[i], target_tree[i]);
         else
           source_tree[i].for_each(function (s) {
@@ -203,41 +203,41 @@ class Tree {
   /// nodes. The method first gets the closest common ancestor and then selects a range of its
   /// children that contains all the passed nodes.
   static nodes_to_range(nodes) {
-    var N = nodes.length;
+    const N = nodes.length;
     if (N === 0) return [];
     if (N === 1) return [nodes[0]];
-    var tree = nodes[0];
+    let tree = nodes[0];
     while (tree.parent) tree = tree.parent;
 
     // get the closest common anchestor (cca)
-    var paths = nodes.map(function (node) {
+    const paths = nodes.map(function (node) {
       return Tree.get_path(node);
     });
-    var same = function (len) {
-      var val = paths[0][len];
-      for (var i = 0; i < paths.length; i++) {
+    const same = function (len) {
+      const val = paths[0][len];
+      for (let i = 0; i < paths.length; i++) {
         if (paths[i].length <= len + 1) return false; // we want an ancestor, so if already at leaf, return
         if (paths[i][len] !== val) return false;
       }
       return true;
     };
-    var cpl = 0; // common path length
+    let cpl = 0; // common path length
     while (same(cpl)) cpl++;
-    var cca = Tree.get_child(paths[0].slice(0, cpl), tree);
+    const cca = Tree.get_child(paths[0].slice(0, cpl), tree);
 
     // get the cca's left-most and right-most child that contains one of the nodes
-    var rm = -1,
+    let rm = -1,
       lm = cca.children.length,
       i;
     for (i = 0; i < N; i++) {
-      var n = Tree.get_child(paths[i].slice(0, cpl + 1), tree);
-      var idx = cca.children.indexOf(n);
+      const n = Tree.get_child(paths[i].slice(0, cpl + 1), tree);
+      const idx = cca.children.indexOf(n);
       if (idx > rm) rm = idx;
       if (idx < lm) lm = idx;
     }
 
     // now select the whole range of nodes from left to right
-    var range = [];
+    const range = [];
     for (i = lm; i <= rm; i++) range.push(cca.children[i]);
     return range;
   }
@@ -258,13 +258,13 @@ class Tree {
   /// of the node `parent`. The `nodes` array must contain a list of direct
   /// siblings ordered from left to right.
   static insert_range(parent, idx, nodes) {
-    var N = nodes.length;
+    const N = nodes.length;
     if (N === 0) return;
     nodes[0].ls = parent.children[idx - 1];
     if (parent.children[idx - 1]) parent.children[idx - 1].rs = nodes[0];
     nodes[N - 1].rs = parent.children[idx];
     if (parent.children[idx]) parent.children[idx].ls = nodes[N - 1];
-    for (var i = 0; i < N; i++) nodes[i].parent = parent;
+    for (let i = 0; i < N; i++) nodes[i].parent = parent;
     parent.children = parent.children
       .slice(0, idx)
       .concat(nodes, parent.children.slice(idx));
@@ -274,13 +274,13 @@ class Tree {
   /// The `nodes` array must contain a list of direct siblings ordered from left to right.
   /// Returns the inserted node range.
   static append_range(parent, nodes) {
-    var N = nodes.length;
+    const N = nodes.length;
     if (N === 0) return;
-    var last = parent.children[parent.children.length - 1];
+    const last = parent.children[parent.children.length - 1];
     if (last) last.rs = nodes[0];
     nodes[0].ls = last;
     nodes[N - 1].rs = null;
-    for (var i = 0; i < N; i++) nodes[i].parent = parent;
+    for (let i = 0; i < N; i++) nodes[i].parent = parent;
     parent.children = parent.children.concat(nodes);
     return nodes;
   }
@@ -290,10 +290,10 @@ class Tree {
   /// If no_overlap is set to true, the function will not search children of a
   /// successful match and will not include any nodes used in a successful match again.
   static filterRange(selector, node, no_overlap) {
-    var result = [];
-    var nodes = Array.isArray(node) ? node : [node];
+    const result = [];
+    const nodes = Array.isArray(node) ? node : [node];
     var f = function (nodes, idx) {
-      var range = [],
+      const range = [],
         n = nodes[idx];
       for (var i = idx; i < nodes.length; i++) {
         range.push(nodes[i]);
@@ -307,12 +307,12 @@ class Tree {
       }
       return 0;
     };
-    for (var i = 0; i < nodes.length; i++) i += f(nodes, i);
+    for (let i = 0; i < nodes.length; i++) i += f(nodes, i);
     return result;
   }
   /// Inserts a node into the tree as the last child of 'parent'. Returns the inserted node.
   static append(parent, node) {
-    var last = parent.children[parent.children.length - 1];
+    const last = parent.children[parent.children.length - 1];
     if (last) last.rs = node;
     node.ls = last;
     node.rs = null;
@@ -324,8 +324,8 @@ class Tree {
   /// Removes the passed node from the tree and returns its previous index. Sets
   /// node.parent to null.
   static remove(node) {
-    var idx;
-    var siblings = node.parent.children;
+    let idx;
+    const siblings = node.parent.children;
     idx = siblings.indexOf(node);
     if (siblings[idx - 1]) siblings[idx - 1].rs = node.rs;
     if (siblings[idx + 1]) siblings[idx + 1].ls = node.ls;
@@ -337,14 +337,14 @@ class Tree {
   /// nodes contained more than zero nodes. The `nodes` array must contain a list of direct
   /// siblings ordered from left to right. Sets the removed nodes' parent link to null.
   static remove_range(nodes) {
-    var N = nodes.length;
+    const N = nodes.length;
     if (N === 0) return;
-    var siblings = nodes[0].parent.children;
-    var idx = siblings.indexOf(nodes[0]);
+    const siblings = nodes[0].parent.children;
+    const idx = siblings.indexOf(nodes[0]);
     if (siblings[idx - 1]) siblings[idx - 1].rs = nodes[N - 1].rs;
     if (siblings[idx + N]) siblings[idx + N].ls = nodes[0].ls;
     siblings.splice(idx, N);
-    for (var i = 0; i < nodes.length; i++) nodes[i].parent = null;
+    for (let i = 0; i < nodes.length; i++) nodes[i].parent = null;
     return idx;
   }
 
@@ -355,7 +355,7 @@ class Tree {
   static replace(n1, n2) {
     if (n1 === n2) return n1;
     if (n2.parent) Tree.remove(n2);
-    var parent = n1.parent,
+    const parent = n1.parent,
       idx = Tree.remove(n1);
     return Tree.insert(parent, idx, n2);
   }
@@ -364,12 +364,12 @@ class Tree {
   static switch_siblings(n1, n2) {
     if (n1.parent != n2.parent)
       throw 'Called switch_siblings on nodes that are no siblings!';
-    var p = n1.parent;
-    var idx1 = p.children.indexOf(n1);
-    var idx2 = p.children.indexOf(n2);
+    const p = n1.parent;
+    const idx1 = p.children.indexOf(n1);
+    const idx2 = p.children.indexOf(n2);
     p.children[idx1] = n2;
     p.children[idx2] = n1;
-    var h;
+    let h;
     if (n1.rs == n2) {
       if (n1.ls) n1.ls.rs = n2;
       if (n2.rs) n2.rs.ls = n1;
@@ -405,8 +405,8 @@ class Tree {
     var check = function (node, parent) {
       if (node.parent != parent) throw 'wrong parent information';
       if (node.children) {
-        for (var i = 0; i < node.children.length; i++) {
-          var child = node.children[i];
+        for (let i = 0; i < node.children.length; i++) {
+          const child = node.children[i];
           if (child.ls != node.children[i - 1]) throw 'wrong ls information';
           if (child.rs != node.children[i + 1]) throw 'wrong rs information';
           check(child, node);
@@ -414,7 +414,7 @@ class Tree {
       }
     };
     if (!Array.isArray(nodes)) nodes = [nodes];
-    for (var i = 0; i < nodes.length; i++) check(nodes[i], null);
+    for (let i = 0; i < nodes.length; i++) check(nodes[i], null);
   }
 
   /// Returns the index of the passed node in its parent node or -1 if it does not
@@ -428,7 +428,7 @@ class Tree {
   /// child. E.g. for `[A[B,C[D]]]`, Tree.get(t, [0, 1, 0]) will return node `D`.
   /// If the path does not exist, the method returns null.
   static get_child(path, node) {
-    for (var i = 0; i < path.length; i++) {
+    for (let i = 0; i < path.length; i++) {
       if (!node.children || node.children.length <= path[i]) return null;
       node = node.children[path[i]];
     }
@@ -438,7 +438,7 @@ class Tree {
   /// Safe way to get to a nodes anchestors. If a parent does not exist, it will
   /// return null.
   static get_parent(level, node) {
-    for (var i = 0; i < level; i++) {
+    for (let i = 0; i < level; i++) {
       if (node.parent) node = node.parent;
       else return null;
     }
@@ -447,7 +447,7 @@ class Tree {
   /// Pass a node to get an array of children-indices from the root to the
   /// passed node. This is the inverse function to Tree.get_child.
   static get_path(node) {
-    var path = [];
+    const path = [];
     while (node.parent) {
       path.unshift(node.parent.children.indexOf(node));
       node = node.parent;
@@ -457,39 +457,39 @@ class Tree {
   /// Calls the passed function for the passed node and all its descandents in depth-first order.
   /// Node can either be a single node or an array of nodes.
   static for_each(f, node) {
-    var nodes = Array.isArray(node) ? node : [node];
+    const nodes = Array.isArray(node) ? node : [node];
     var traverse = function (node) {
       f(node);
       if (node.children)
-        for (var i = 0; i < node.children.length; i++) traverse(node.children[i]);
+        for (let i = 0; i < node.children.length; i++) traverse(node.children[i]);
     };
-    for (var i = 0; i < nodes.length; i++) traverse(nodes[i]);
+    for (let i = 0; i < nodes.length; i++) traverse(nodes[i]);
   }
   /// Calls the passed function for each of the passed nodes and their anchestors, depth-first.
   /// The results are stored in an array that is returned. Node can either be a single node or
   /// an array of nodes.
   static map(f, node) {
-    var nodes = Array.isArray(node) ? node : [node];
-    var res = [];
+    const nodes = Array.isArray(node) ? node : [node];
+    const res = [];
     var traverse = function (node) {
       res.push(f(node));
       if (node.children)
-        for (var i = 0; i < node.children.length; i++) traverse(node.children[i]);
+        for (let i = 0; i < node.children.length; i++) traverse(node.children[i]);
     };
-    for (var i = 0; i < nodes.length; i++) traverse(nodes[i]);
+    for (let i = 0; i < nodes.length; i++) traverse(nodes[i]);
     return res;
   }
   /// Returns an array of all nodes for which the passed selector function returned true. Traverses
   /// the nodes depth-first. The passed node can either be a single node or an array of nodes.
   static filter(selector, node) {
-    var result = [];
-    var nodes = Array.isArray(node) ? node : [node];
+    const result = [];
+    const nodes = Array.isArray(node) ? node : [node];
     var f = function (node) {
       if (selector(node)) result.push(node);
       if (node.children)
-        for (var i = 0; i < node.children.length; i++) f(node.children[i]);
+        for (let i = 0; i < node.children.length; i++) f(node.children[i]);
     };
-    for (var i = 0; i < nodes.length; i++) f(nodes[i]);
+    for (let i = 0; i < nodes.length; i++) f(nodes[i]);
     return result;
   }
   /// Returns an array of all nodes in the tree of the passed root node. The root node is included.
@@ -504,8 +504,8 @@ class Tree {
   /// returns true. Traverses depth-first. Node can either be a single node or an array of nodes.
   /// If no nodes matches, returns null.
   static select_first(selector, node) {
-    var f = function (node) {
-      var curr = node;
+    const f = function (node) {
+      let curr = node;
       for (;;) {
         if (selector(curr)) return curr;
         if (curr.children && curr.children[0]) {
@@ -520,31 +520,31 @@ class Tree {
         curr = curr.rs;
       }
     };
-    var nodes = Array.isArray(node) ? node : [node];
-    for (var i = 0; i < nodes.length; i++) {
-      var n = f(nodes[i]);
+    const nodes = Array.isArray(node) ? node : [node];
+    for (let i = 0; i < nodes.length; i++) {
+      const n = f(nodes[i]);
       if (n) return n;
     }
     return null;
   }
   /// Returns the closest common anchestor of the passed nodes.
   static get_cca(nodes) {
-    var paths = nodes.map(function (node) {
+    const paths = nodes.map(function (node) {
       return Tree.get_path(node);
     });
-    var same = function (len) {
-      var val = paths[0][len];
-      for (var i = 0; i < paths.length; i++) {
+    const same = function (len) {
+      const val = paths[0][len];
+      for (let i = 0; i < paths.length; i++) {
         if (paths[i].length <= len + 1) return false; // no need to look further if we are at a leaf already
         if (paths[i][len] !== val) return false;
       }
       return true;
     };
-    var cpl = 0; // common path length
+    let cpl = 0; // common path length
     while (same(cpl)) cpl++;
-    var d = paths[0].length - cpl,
+    let d = paths[0].length - cpl,
       n = nodes[0];
-    for (var i = 0; i < d; i++) n = n.parent;
+    for (let i = 0; i < d; i++) n = n.parent;
     return n;
   }
   /// Returns an array of all leaf nodes of the node array or single node passed.
@@ -560,7 +560,7 @@ class Tree {
   /// Retruns true if the passed node array is a proper node range, which is the
   /// case only if they are all siblings and ordered from left to right.
   static is_range(nodes) {
-    for (var i = 1; i < nodes.length; i++) {
+    for (let i = 1; i < nodes.length; i++) {
       if (nodes[i - 1].rs !== nodes[i]) return false;
     }
     return true;
@@ -597,7 +597,7 @@ if (typeof exports != 'undefined') {
 
 /// Adds a uid() function to Tree, that returns a random hex number with 16 digets as string.
 (function () {
-  var b32 = 0x100000000,
+  const b32 = 0x100000000,
     f = 0xf,
     b = [],
     str = [
@@ -619,8 +619,8 @@ if (typeof exports != 'undefined') {
       'f',
     ];
   function uid() {
-    var i = 0;
-    var r = Math.random() * b32;
+    let i = 0;
+    let r = Math.random() * b32;
     b[i++] = str[r & f];
     b[i++] = str[(r >>> 4) & f];
     b[i++] = str[(r >>> 8) & f];
