@@ -8,6 +8,56 @@ itself. Instead, each object can be a tree node.
 
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
+
+/** Adds a uid() function to Tree, that returns a random hex number with 16 digets as
+ * string. */
+ const uid = (function () {
+  const b32 = 0x100000000,
+    f = 0xf,
+    b = [],
+    str = [
+      '0',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+      'f',
+    ];
+  function uid() {
+    let i = 0;
+    let r = Math.random() * b32;
+    b[i++] = str[r & f];
+    b[i++] = str[(r >>> 4) & f];
+    b[i++] = str[(r >>> 8) & f];
+    b[i++] = str[(r >>> 12) & f];
+    b[i++] = str[(r >>> 16) & f];
+    b[i++] = str[(r >>> 20) & f];
+    b[i++] = str[(r >>> 24) & f];
+    b[i++] = str[(r >>> 28) & f];
+    r = Math.random() * b32;
+    b[i++] = str[r & f];
+    b[i++] = str[(r >>> 4) & f];
+    b[i++] = str[(r >>> 8) & f];
+    b[i++] = str[(r >>> 12) & f];
+    b[i++] = str[(r >>> 16) & f];
+    b[i++] = str[(r >>> 20) & f];
+    b[i++] = str[(r >>> 24) & f];
+    b[i++] = str[(r >>> 28) & f];
+    return '_' + b.join('');
+  }
+  return uid;
+})();
+
 class Tree {
   /// Will parse a sting like '[A,B[b1,b2,b3],C]' and return the top-level node of a
   /// tree structure. If there are more than a single top-level node, an array of them
@@ -585,6 +635,7 @@ class Tree {
       return n.id === id;
     }, node);
   }
+  static uid = uid;
 }
 
 Tree.version = '1.3.7';
@@ -594,54 +645,6 @@ Tree.Node = Node;
 if (typeof exports != 'undefined') {
   exports.Tree = Tree;
 }
-
-/// Adds a uid() function to Tree, that returns a random hex number with 16 digets as string.
-(function () {
-  const b32 = 0x100000000,
-    f = 0xf,
-    b = [],
-    str = [
-      '0',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      'a',
-      'b',
-      'c',
-      'd',
-      'e',
-      'f',
-    ];
-  function uid() {
-    let i = 0;
-    let r = Math.random() * b32;
-    b[i++] = str[r & f];
-    b[i++] = str[(r >>> 4) & f];
-    b[i++] = str[(r >>> 8) & f];
-    b[i++] = str[(r >>> 12) & f];
-    b[i++] = str[(r >>> 16) & f];
-    b[i++] = str[(r >>> 20) & f];
-    b[i++] = str[(r >>> 24) & f];
-    b[i++] = str[(r >>> 28) & f];
-    r = Math.random() * b32;
-    b[i++] = str[r & f];
-    b[i++] = str[(r >>> 4) & f];
-    b[i++] = str[(r >>> 8) & f];
-    b[i++] = str[(r >>> 12) & f];
-    b[i++] = str[(r >>> 16) & f];
-    b[i++] = str[(r >>> 20) & f];
-    b[i++] = str[(r >>> 24) & f];
-    b[i++] = str[(r >>> 28) & f];
-    return '_' + b.join('');
-  }
-  Tree.uid = uid;
-})();
 
 /// To get all static methods of the Tree object as instance methods on your
 /// object, you can make it inherit from the "Node" class
