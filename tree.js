@@ -9,9 +9,108 @@ itself. Instead, each object can be a tree node.
 Most of the methods can accept both a single node or an array of nodes to work on.
 */
 
+/// To get all static methods of the Tree object as instance methods on your
+/// object, you can make it inherit from the "Node" class
+class Node {
+  constructor() {
+    this.children = [];
+    this.parent = null;
+    this.ls = null;
+    this.rs = null;
+    this.id = Tree.uid();
+  }
+  stringify() {
+    return Tree.stringify(this);
+  }
+  clone(keep_ids, fields_to_clone) {
+    return Tree.clone(this, keep_ids, fields_to_clone);
+  }
+  get_mapping_to(target) {
+    return Tree.get_mapping_between(this, target);
+  }
+  get_1to1_mapping_to(target, strict) {
+    return Tree.get_1to1_mapping_between(this, target, strict);
+  }
+  insert(idx, node) {
+    return Tree.insert(this, idx, node);
+  }
+  insert_range(idx, nodes) {
+    return Tree.insert_range(this, idx, nodes);
+  }
+  append_range(nodes) {
+    return Tree.append_range(this, nodes);
+  }
+  append(node) {
+    return Tree.append(this, node);
+  }
+  remove() {
+    return Tree.remove(this);
+  }
+  remove_range(nodes) {
+    return Tree.remove_range(nodes);
+  }
+  replace_with(other) {
+    return Tree.replace(this, other);
+  }
+  switch_with_sibling(other) {
+    return Tree.switch_siblings(this, other);
+  }
+  validate() {
+    return Tree.validate(this);
+  }
+  get_child(path) {
+    return Tree.get_child(path, this);
+  }
+  get_parent(level) {
+    return Tree.get_parent(level, this);
+  }
+  get_path() {
+    return Tree.get_path(this);
+  }
+  for_each(f) {
+    return Tree.for_each(f, this);
+  }
+  map(f) {
+    return Tree.map(f, this);
+  }
+  filter(f) {
+    return Tree.filter(f, this);
+  }
+  filterRange(f, no_overlap) {
+    return Tree.filterRange(f, this, no_overlap);
+  }
+  select_all() {
+    return Tree.select_all(this);
+  }
+  select_first(f) {
+    return Tree.select_first(f, this);
+  }
+  get_leaf_nodes() {
+    return Tree.get_leaf_nodes(this);
+  }
+  is_root() {
+    return Tree.is_root(this);
+  }
+  get_root() {
+    return Tree.get_root(this);
+  }
+  get_by_value(value) {
+    return Tree.get_by_value(value, this);
+  }
+  get_by_id(id) {
+    return Tree.get_by_id(id, this);
+  }
+  has_children() {
+    return this.children && this.children.length > 0;
+  }
+  get_idx() {
+    return Tree.get_idx(this);
+  }
+}
+
 /** Adds a uid() function to Tree, that returns a random hex number with 16 digets as
  * string. */
- const uid = (function () {
+const uid = (function () {
   const b32 = 0x100000000,
     f = 0xf,
     b = [],
@@ -643,103 +742,4 @@ class Tree {
 /// This line is for the automated tests with node.js
 if (typeof exports != 'undefined') {
   exports.Tree = Tree;
-}
-
-/// To get all static methods of the Tree object as instance methods on your
-/// object, you can make it inherit from the "Node" class
-class Node {
-  constructor() {
-    this.children = [];
-    this.parent = null;
-    this.ls = null;
-    this.rs = null;
-    this.id = Tree.uid();
-  }
-  stringify() {
-    return Tree.stringify(this);
-  }
-  clone(keep_ids, fields_to_clone) {
-    return Tree.clone(this, keep_ids, fields_to_clone);
-  }
-  get_mapping_to(target) {
-    return Tree.get_mapping_between(this, target);
-  }
-  get_1to1_mapping_to(target, strict) {
-    return Tree.get_1to1_mapping_between(this, target, strict);
-  }
-  insert(idx, node) {
-    return Tree.insert(this, idx, node);
-  }
-  insert_range(idx, nodes) {
-    return Tree.insert_range(this, idx, nodes);
-  }
-  append_range(nodes) {
-    return Tree.append_range(this, nodes);
-  }
-  append(node) {
-    return Tree.append(this, node);
-  }
-  remove() {
-    return Tree.remove(this);
-  }
-  remove_range(nodes) {
-    return Tree.remove_range(nodes);
-  }
-  replace_with(other) {
-    return Tree.replace(this, other);
-  }
-  switch_with_sibling(other) {
-    return Tree.switch_siblings(this, other);
-  }
-  validate() {
-    return Tree.validate(this);
-  }
-  get_child(path) {
-    return Tree.get_child(path, this);
-  }
-  get_parent(level) {
-    return Tree.get_parent(level, this);
-  }
-  get_path() {
-    return Tree.get_path(this);
-  }
-  for_each(f) {
-    return Tree.for_each(f, this);
-  }
-  map(f) {
-    return Tree.map(f, this);
-  }
-  filter(f) {
-    return Tree.filter(f, this);
-  }
-  filterRange(f, no_overlap) {
-    return Tree.filterRange(f, this, no_overlap);
-  }
-  select_all() {
-    return Tree.select_all(this);
-  }
-  select_first(f) {
-    return Tree.select_first(f, this);
-  }
-  get_leaf_nodes() {
-    return Tree.get_leaf_nodes(this);
-  }
-  is_root() {
-    return Tree.is_root(this);
-  }
-  get_root() {
-    return Tree.get_root(this);
-  }
-  get_by_value(value) {
-    return Tree.get_by_value(value, this);
-  }
-  get_by_id(id) {
-    return Tree.get_by_id(id, this);
-  }
-  has_children() {
-    return this.children && this.children.length > 0;
-  }
-  get_idx() {
-    return Tree.get_idx(this);
-  }
 }
