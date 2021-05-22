@@ -636,10 +636,9 @@ class Tree {
     }, node);
   }
   static uid = uid;
+  static version = '1.3.7';
+  static Node = Node;
 }
-
-Tree.version = '1.3.7';
-Tree.Node = Node;
 
 /// This line is for the automated tests with node.js
 if (typeof exports != 'undefined') {
