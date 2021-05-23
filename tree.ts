@@ -199,7 +199,7 @@ export class Tree {
   /// `value` fields. This is just for debugging and allows you to look at the structure
   /// of a tree and the `value` fields of its nodes. `nodes` can be a single node or an
   /// array of nodes.
-  static stringify(nodes) {
+  static stringify(nodes: TreeNode | TreeNode[]) {
     const f = function (node) {
       let str = '';
       if ('value' in node) str += node.value;
@@ -282,7 +282,7 @@ export class Tree {
    * are duplicate ids in the source tree.
    */
   static get_mapping_between(source_tree, target_tree) {
-    const map = {};
+    const map: { [id: string]: TreeNode[] } = {};
 
     function mapfn(source, target) {
       if (source.id in map) throw 'duplicate id in source tree';
@@ -318,7 +318,7 @@ export class Tree {
    * mapping is returned.
    */
   static get_1to1_mapping_between(source_tree, target_tree, strict) {
-    const map = {};
+    const map: { [id: string]: TreeNode[] } = {};
     if (arguments.length < 3) strict = true;
     function mapfn(source, target) {
       if (strict && source.id in map) throw 'duplicate id in source tree';
