@@ -11,7 +11,7 @@ Most of the methods can accept both a single node or an array of nodes to work o
 
 /// To get all static methods of the Tree object as instance methods on your
 /// object, you can make it inherit from the "TreeNode" class
-class TreeNode {
+export class TreeNode {
   constructor() {
     this.children = [];
     this.parent = null;
@@ -157,7 +157,7 @@ const uid = (function () {
   return uid;
 })();
 
-class Tree {
+export class Tree {
   /// Will parse a sting like '[A,B[b1,b2,b3],C]' and return the top-level node of a
   /// tree structure. If there are more than a single top-level node, an array of them
   /// is returned (e.g. 'A,B'). Use square brackets to denote children of a node and commas
@@ -736,9 +736,4 @@ class Tree {
   static uid = uid;
   static version = '1.3.7';
   static Node = TreeNode;
-}
-
-/// This line is for the automated tests with node.js
-if (typeof exports != 'undefined') {
-  exports.Tree = Tree;
 }
