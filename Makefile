@@ -1,7 +1,7 @@
 JS_COMPILER = ./node_modules/.bin/uglifyjs
 TESTER = ./node_modules/.bin/nodeunit
 
-all: tree.min.js
+all: tree.min.js tree.d.ts
 
 test: tree.js
 	$(TESTER) test/tree-test.js
@@ -15,9 +15,9 @@ tree.min.js: tree.js
 	$(JS_COMPILER) < tree.js > $@
 
 clean:
-	rm -f tree.min.js tree.js tree.js.map
+	rm -f tree.min.js tree.js tree.js.map tree.d.ts
 
-tree.js: tree.ts tsconfig.json Makefile package.json
+tree.js tree.d.ts tree.js.map: tree.ts tsconfig.json Makefile package.json
 	npm run ts
 
 .PHONY: all clean test test-w test-cov
