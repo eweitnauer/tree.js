@@ -18,6 +18,7 @@
     "typescript": "^4.2.4",
     "uglify-js": "2.x.x"
   },
+  "main": "./tree.js",
   "scripts": {
     "test": "make test",
     "ts": "tsc"
