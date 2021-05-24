@@ -33,7 +33,7 @@ export class TreeNode {
   get_mapping_to(target) {
     return Tree.get_mapping_between(this, target);
   }
-  get_1to1_mapping_to(target, strict) {
+  get_1to1_mapping_to(target, strict = false) {
     return Tree.get_1to1_mapping_between(this, target, strict);
   }
   insert(idx, node) {

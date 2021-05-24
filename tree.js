@@ -30,6 +30,7 @@ var TreeNode = /** @class */ (function () {
         return Tree.get_mapping_between(this, target);
     };
     TreeNode.prototype.get_1to1_mapping_to = function (target, strict) {
+        if (strict === void 0) { strict = false; }
         return Tree.get_1to1_mapping_between(this, target, strict);
     };
     TreeNode.prototype.insert = function (idx, node) {

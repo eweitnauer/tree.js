@@ -18,7 +18,7 @@ export declare class TreeNode {
     get_mapping_to(target: any): {
         [id: string]: TreeNode[];
     };
-    get_1to1_mapping_to(target: any, strict: any): {
+    get_1to1_mapping_to(target: any, strict?: boolean): {
         [id: string]: TreeNode[];
     };
     insert(idx: any, node: any): any;
