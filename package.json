@@ -13,14 +13,14 @@
     "url": "https://github.com/eweitnauer/tree.js"
   },
   "devDependencies": {
-    "istanbul": "0.2.x",
     "nodeunit": "0.8.x",
-    "typescript": "^4.2.4",
-    "uglify-js": "2.x.x"
+    "typescript": "^4.2.4"
   },
-  "main": "./tree.js",
+  "main": "dist/tree.js",
+  "types": "dist/tree.d.ts",
   "scripts": {
-    "test": "make test",
-    "ts": "tsc"
+    "test": "npm run build && nodeunit test/tree-test.js",
+    "build": "tsc",
+    "prepublish": "npm run test"
   }
 }

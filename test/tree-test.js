@@ -1,7 +1,7 @@
 /// Copyright by Erik Weitnauer, 2013.
 
 /// testing with nodeunit
-var Tree   = require('../tree.js').Tree;
+var Tree   = require('../dist/tree.js').Tree;
 
 exports['parse'] = function(test) {
   var t0 = Tree.parse('');
