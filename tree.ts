@@ -11,7 +11,12 @@ Most of the methods can accept both a single node or an array of nodes to work o
 
 /// To get all static methods of the Tree object as instance methods on your
 /// object, you can make it inherit from the "TreeNode" class
-class TreeNode {
+export class TreeNode {
+  children: TreeNode[];
+  parent: TreeNode | null;
+  ls: TreeNode | null;
+  rs: TreeNode | null;
+  id: string;
   constructor() {
     this.children = [];
     this.parent = null;
@@ -28,7 +33,7 @@ class TreeNode {
   get_mapping_to(target) {
     return Tree.get_mapping_between(this, target);
   }
-  get_1to1_mapping_to(target, strict) {
+  get_1to1_mapping_to(target, strict = false) {
     return Tree.get_1to1_mapping_between(this, target, strict);
   }
   insert(idx, node) {
@@ -113,7 +118,7 @@ class TreeNode {
 const uid = (function () {
   const b32 = 0x100000000,
     f = 0xf,
-    b = [],
+    b: string[] = [],
     str = [
       '0',
       '1',
@@ -157,7 +162,7 @@ const uid = (function () {
   return uid;
 })();
 
-class Tree {
+export class Tree {
   /// Will parse a sting like '[A,B[b1,b2,b3],C]' and return the top-level node of a
   /// tree structure. If there are more than a single top-level node, an array of them
   /// is returned (e.g. 'A,B'). Use square brackets to denote children of a node and commas
@@ -194,7 +199,7 @@ class Tree {
   /// `value` fields. This is just for debugging and allows you to look at the structure
   /// of a tree and the `value` fields of its nodes. `nodes` can be a single node or an
   /// array of nodes.
-  static stringify(nodes) {
+  static stringify(nodes: TreeNode | TreeNode[]) {
     const f = function (node) {
       let str = '';
       if ('value' in node) str += node.value;
@@ -277,7 +282,7 @@ class Tree {
    * are duplicate ids in the source tree.
    */
   static get_mapping_between(source_tree, target_tree) {
-    const map = {};
+    const map: { [id: string]: TreeNode[] } = {};
 
     function mapfn(source, target) {
       if (source.id in map) throw 'duplicate id in source tree';
@@ -313,7 +318,7 @@ class Tree {
    * mapping is returned.
    */
   static get_1to1_mapping_between(source_tree, target_tree, strict) {
-    const map = {};
+    const map: { [id: string]: TreeNode[] } = {};
     if (arguments.length < 3) strict = true;
     function mapfn(source, target) {
       if (strict && source.id in map) throw 'duplicate id in source tree';
@@ -386,7 +391,7 @@ class Tree {
     }
 
     // now select the whole range of nodes from left to right
-    const range = [];
+    const range: TreeNode[] = [];
     for (i = lm; i <= rm; i++) range.push(cca.children[i]);
     return range;
   }
@@ -439,10 +444,10 @@ class Tree {
   /// If no_overlap is set to true, the function will not search children of a
   /// successful match and will not include any nodes used in a successful match again.
   static filterRange(selector, node, no_overlap) {
-    const result = [];
+    const result: TreeNode[][] = [];
     const nodes = Array.isArray(node) ? node : [node];
     const f = function (nodes, idx) {
-      const range = [],
+      const range: TreeNode[] = [],
         n = nodes[idx];
       for (let i = idx; i < nodes.length; i++) {
         range.push(nodes[i]);
@@ -595,7 +600,7 @@ class Tree {
   /// Pass a node to get an array of children-indices from the root to the
   /// passed node. This is the inverse function to Tree.get_child.
   static get_path(node) {
-    const path = [];
+    const path: number[] = [];
     while (node.parent) {
       path.unshift(node.parent.children.indexOf(node));
       node = node.parent;
@@ -616,10 +621,11 @@ class Tree {
   /// Calls the passed function for each of the passed nodes and their anchestors, depth-first.
   /// The results are stored in an array that is returned. TreeNode can either be a single node or
   /// an array of nodes.
-  static map(f, node) {
+  // eslint-disable-next-line no-unused-vars
+  static map<T>(f: (node: TreeNode) => T, node: TreeNode | TreeNode[]) {
     const nodes = Array.isArray(node) ? node : [node];
-    const res = [];
-    const traverse = function (node) {
+    const res: T[] = [];
+    const traverse = function (node: TreeNode) {
       res.push(f(node));
       if (node.children)
         for (let i = 0; i < node.children.length; i++) traverse(node.children[i]);
@@ -630,7 +636,7 @@ class Tree {
   /// Returns an array of all nodes for which the passed selector function returned true. Traverses
   /// the nodes depth-first. The passed node can either be a single node or an array of nodes.
   static filter(selector, node) {
-    const result = [];
+    const result: TreeNode[] = [];
     const nodes = Array.isArray(node) ? node : [node];
     const f = function (node) {
       if (selector(node)) result.push(node);
@@ -736,9 +742,4 @@ class Tree {
   static uid = uid;
   static version = '1.3.7';
   static Node = TreeNode;
-}
-
-/// This line is for the automated tests with node.js
-if (typeof exports != 'undefined') {
-  exports.Tree = Tree;
 }
