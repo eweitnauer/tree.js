@@ -21,6 +21,6 @@
   "scripts": {
     "test": "npm run build && nodeunit test/tree-test.js",
     "build": "tsc",
-    "prepublish": "npm run test"
+    "prepare": "npm run test"
   }
 }
