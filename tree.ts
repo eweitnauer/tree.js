@@ -27,7 +27,7 @@ export class TreeNode {
   stringify() {
     return Tree.stringify(this);
   }
-  clone(keep_ids, fields_to_clone) {
+  clone(keep_ids?, fields_to_clone?) {
     return Tree.clone(this, keep_ids, fields_to_clone);
   }
   get_mapping_to(target) {
@@ -218,7 +218,7 @@ export class Tree {
   /// undefined for the passed node. A new random id is assigned to the cloned node if the original had
   /// an id, unless the optional keep_ids parameter is passed as true.
   /// `nodes` can either be a single node or an array of nodes. The cloned node or nodes are returned.
-  static clone(nodes, keep_ids, fields_to_clone) {
+  static clone(nodes, keep_ids?, fields_to_clone?) {
     const f = function (node) {
       let i;
       const cloned = new node.constructor();
@@ -301,8 +301,10 @@ export class Tree {
     }
 
     if (Array.isArray(source_tree)) {
-      if (source_tree.length !== target_tree.length) throw "tree structures don't match";
-      for (let i = 0; i < source_tree.length; i++) mapfn(source_tree[i], target_tree[i]);
+      if (source_tree.length !== target_tree.length)
+        throw "tree structures don't match";
+      for (let i = 0; i < source_tree.length; i++)
+        mapfn(source_tree[i], target_tree[i]);
     } else mapfn(source_tree, target_tree);
 
     return map;
@@ -614,7 +616,8 @@ export class Tree {
     const traverse = function (node) {
       f(node);
       if (node.children)
-        for (let i = 0; i < node.children.length; i++) traverse(node.children[i]);
+        for (let i = 0; i < node.children.length; i++)
+          traverse(node.children[i]);
     };
     for (let i = 0; i < nodes.length; i++) traverse(nodes[i]);
   }
@@ -628,7 +631,8 @@ export class Tree {
     const traverse = function (node: TreeNode) {
       res.push(f(node));
       if (node.children)
-        for (let i = 0; i < node.children.length; i++) traverse(node.children[i]);
+        for (let i = 0; i < node.children.length; i++)
+          traverse(node.children[i]);
     };
     for (let i = 0; i < nodes.length; i++) traverse(nodes[i]);
     return res;

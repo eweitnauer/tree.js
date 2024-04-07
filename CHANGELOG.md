@@ -1,3 +1,7 @@
+v1.4.1
+
+- mark clone parameters as optional
+
 v1.3.7
 
 - rebuilt the tree.min.js file

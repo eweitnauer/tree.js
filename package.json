@@ -1,7 +1,7 @@
 {
   "name": "tree.js",
   "description": "A javascript library for creating and manipulating fully linked tree structures.",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "keywords": [
     "tree"
   ],
@@ -13,8 +13,8 @@
     "url": "https://github.com/eweitnauer/tree.js"
   },
   "devDependencies": {
-    "nodeunit": "0.8.x",
-    "typescript": "^4.2.4"
+    "nodeunit": "^0.11.3",
+    "typescript": "^5.4.4"
   },
   "main": "dist/tree.js",
   "types": "dist/tree.d.ts",
